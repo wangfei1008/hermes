@@ -3,6 +3,7 @@
 #include "log/log.h"
 #include "database/sqlite_repository.h"
 #include "device/device_builder.h"
+#include "data_models/data_hub.h"
 
 void Service::init()
 {
@@ -10,7 +11,8 @@ void Service::init()
 	MessageBus::instance().start();
 
 	//2、启动数据总线
-	
+	DataHub::instance().create();
+
 	//3、启动设备代理
 	setup_devices_proxy();
 }
@@ -28,28 +30,35 @@ void Service::release()
 
 void Service::setup_devices_proxy()
 {
-	if (!SQLiteRepository::open("db/netsys_daq_hub.db"))
-	{
+	if (!SQLiteRepository::open("db/netsys_daq_hub.db")){
 		LOGERROR("Failed to open database: %s", SQLiteRepository::err_message().c_str());
 		return;
 	}
+
+	// 1. 从数据库加载设备配置
 	SQLiteRepository::init_tables();
-
 	auto devices = SQLiteRepository::query_all_device();
+	LOGINFO("Loaded %zu devices from database", devices.size());
+
+	// 2. 构建所有设备代理
 	DeviceBuilder builder;
-	for (auto& dev : devices)
-	{
-		// 1. 创建代理
+	for (auto& dev : devices) {
 		auto proxy = builder.build(dev);
-
-		// 2. 只有 Proxy 订阅总线
-		MessageBus::instance().subscribe(MESSAGE_PUBLICE_WRITE, proxy.get());
-
-		// 3. 启动设备
-		proxy->start();
-
-		m_proxies.push_back(proxy);
+		if (proxy) {
+			m_proxies.push_back(proxy);
+			MessageBus::instance().subscribe(MESSAGE_PUBLICE_WRITE, proxy.get());//只有 Proxy 订阅总线
+			LOGINFO("Device [%s] built successfully", dev.name.c_str());
+		}
+		else {
+			LOGERROR("Failed to build device [%s]", dev.name.c_str());
+		}
 	}
+
+	// 3. 启动所有设备
+	for (auto& proxy : m_proxies) {
+		proxy->start();
+	}
+	LOGINFO("All devices started");
 }
 
 void Service::teardown_devices_proxy()

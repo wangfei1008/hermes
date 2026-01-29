@@ -2,7 +2,7 @@
 #define DEVICE_PROXY_H
 
 #include "message/i_message_observer.h"
-#include "device_stream.h"
+#include "execution_stream.h"
 
 class DeviceProxy: public IMessageObserver
 {
@@ -12,7 +12,7 @@ public:
     ~DeviceProxy();
 
     // 1.核心逻辑：添加添加一个完整的流，而不是零散的组件
-    void add_stream(std::unique_ptr<DeviceStream> stream);
+    void add_stream(std::unique_ptr<ExecutionStream> stream);
 
     // 2. 设备启动与停止
     void start();
@@ -26,7 +26,7 @@ public:
 private:
     std::string m_uuid;
     std::string m_name;
-    std::vector<std::unique_ptr<DeviceStream>> m_streams;
+    std::vector<std::unique_ptr<ExecutionStream>> m_streams;
 };
 
 #endif //DEVICE_PROXY_H

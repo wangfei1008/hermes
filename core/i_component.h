@@ -4,7 +4,7 @@
 #include "data_context.h"
 
 struct DeviceContext {
-    std::string device_uuid;   // 设备的唯一ID，对应 MessagePayload 中的 from/to uuid
+    int device_uuid;   // 设备的唯一ID，对应 MessagePayload 中的 from/to uuid
     std::string device_name;
     int stream_id;             // 关联的任务流ID
     // 该设备特有的静态配置信息

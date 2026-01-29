@@ -57,7 +57,8 @@ target_include_directories(hermes PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/data_models
     ${CMAKE_CURRENT_SOURCE_DIR}/database
-    ${CMAKE_CURRENT_SOURCE_DIR}/message    
+    ${CMAKE_CURRENT_SOURCE_DIR}/message  
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core  
 	"${BASE_LIB_DIR}"
 )
 # 链接 cf_base

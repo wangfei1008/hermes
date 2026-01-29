@@ -19,7 +19,7 @@ std::string DeviceProxy::name() const
 }
 
 //1. 核心逻辑：添加添加一个完整的流，而不是零散的组件
-void DeviceProxy::add_stream(std::unique_ptr<DeviceStream> stream)
+void DeviceProxy::add_stream(std::unique_ptr<ExecutionStream> stream)
 {
     if (stream) 
     {
