@@ -12,7 +12,7 @@ ExecutionStream::ExecutionStream(int stream_id, const std::string& name)
     m_msg_dispatcher = std::make_unique<MessageDispatcher>(stream_id, m_pipeline.get());
     m_data_processor = std::make_unique<DataProcessor>(stream_id, m_pipeline.get());
 
-    DataHub::instance().subscribe(std::to_string(m_id), [this](DataContext::Ptr data) {
+    m_data_hub_sub_id = DataHub::instance().subscribe(std::to_string(m_id), [this](DataContext::Ptr data) {
         this->push_data(data);
     });
 
@@ -21,6 +21,7 @@ ExecutionStream::ExecutionStream(int stream_id, const std::string& name)
 
 ExecutionStream::~ExecutionStream()
 {
+    DataHub::instance().unsubscribe(m_data_hub_sub_id);
     stop();
     LOGINFO("ExecutionStream[%d:%s] destroyed", m_id, m_name.c_str());
 }
