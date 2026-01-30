@@ -79,7 +79,7 @@ void* LibraryLoader::resolve(const std::string& file_name, const char* symbol)
     return loader.resolve(symbol);
 }
 
-// ÊôĞÔÉèÖÃ
+// å±æ€§è®¾ç½®
 void LibraryLoader::set_file_name(const std::string& file_name) 
 {
     m_file_name = file_name;
@@ -102,13 +102,13 @@ std::string LibraryLoader::error_string() const
 
 std::string LibraryLoader::decorate_path(const std::string& path) 
 {
-    // Èç¹ûÒÑ¾­°üº¬ºó×ºÃû£¬Ôò²»´¦Àí
+    // å¦‚æœå·²ç»åŒ…å«åç¼€åï¼Œåˆ™ä¸å¤„ç†
     if (path.find('.') != std::string::npos) return path;
 
 #ifdef _WIN32
     return path + ".dll";
 #else
-    // Linux ÏÂ´¦Àí lib Ç°×ºÂß¼­
+    // Linux ä¸‹å¤„ç† lib å‰ç¼€é€»è¾‘
     std::string decorated = path;
     size_t lastSlash = path.find_last_of('/');
     std::string name = (lastSlash == std::string::npos) ? path : path.substr(lastSlash + 1);

@@ -27,7 +27,7 @@ void MessageBus::start()
 void MessageBus::stop()
 {
     m_running = false;
-    m_cv.notify_all(); // »½ĞÑÏß³ÌÈÃËüÍË³ö
+    m_cv.notify_all(); // å”¤é†’çº¿ç¨‹è®©å®ƒé€€å‡º
     if (m_worker_thread.joinable())
         m_worker_thread.join();
 }
@@ -53,7 +53,7 @@ void MessageBus::push(const std::shared_ptr<MessageEnvelope>& msg)
 {
     if (!msg) return;
 
-    // 1. ¸ù¾İÓÅÏÈ¼¶·ÅÈë¶ÔÓ¦µÄ¶ÓÁĞ
+    // 1. æ ¹æ®ä¼˜å…ˆçº§æ”¾å…¥å¯¹åº”çš„é˜Ÿåˆ—
     int prio_idx = 0;
     if (msg->priority() == MessagePriority::MP_NORMAL) prio_idx = 1;
     else if (msg->priority() == MessagePriority::EP_HIGH) prio_idx = 2;
@@ -61,14 +61,14 @@ void MessageBus::push(const std::shared_ptr<MessageEnvelope>& msg)
     m_queues[prio_idx].enqueue(msg);
     m_pending_count++;
 
-    // 2. ºËĞÄ¸Ä½ø£ºÁ¢¼´»½ĞÑÏû·ÑÕß
+    // 2. æ ¸å¿ƒæ”¹è¿›ï¼šç«‹å³å”¤é†’æ¶ˆè´¹è€…
     m_cv.notify_one();
 }
 
 void MessageBus::push(MessageType type, std::string info, MessagePriority priority)
 {
-    // ¹¹Ôì Message ¶ÔÏó²¢·â×°½øÖÇÄÜÖ¸Õë
-    // ×¢Òâ£ºÕâÀïĞèÒª¸ù¾İÄãµÄ Message ¹¹Ôìº¯ÊıÊÊÅä
+    // æ„é€  Message å¯¹è±¡å¹¶å°è£…è¿›æ™ºèƒ½æŒ‡é’ˆ
+    // æ³¨æ„ï¼šè¿™é‡Œéœ€è¦æ ¹æ®ä½ çš„ Message æ„é€ å‡½æ•°é€‚é…
     MessagePayload pack;
     pack.set_type(type);
     pack.set_package(info);
@@ -77,15 +77,15 @@ void MessageBus::push(MessageType type, std::string info, MessagePriority priori
     push(msg);
 }
 
-// ÕâÊÇĞÂµÄ¡°ĞÄÔà¡±£¬Ìæ´úÁË message_processor::notity
+// è¿™æ˜¯æ–°çš„â€œå¿ƒè„â€ï¼Œæ›¿ä»£äº† message_processor::notity
 void MessageBus::work_thread_func()
 {
     while (m_running) {
         std::shared_ptr<MessageEnvelope> msg = nullptr;
         bool found = false;
 
-        // --- A. ÓÅÏÈ¼¶µ÷¶ÈÂß¼­ ---
-        // ×ÜÊÇÏÈ¼ì²é¸ßÓÅÏÈ¼¶¶ÓÁĞ
+        // --- A. ä¼˜å…ˆçº§è°ƒåº¦é€»è¾‘ ---
+        // æ€»æ˜¯å…ˆæ£€æŸ¥é«˜ä¼˜å…ˆçº§é˜Ÿåˆ—
         if (m_queues[2].try_dequeue(msg)) found = true;
         else if (m_queues[1].try_dequeue(msg)) found = true;
         else if (m_queues[0].try_dequeue(msg)) found = true;
@@ -94,12 +94,12 @@ void MessageBus::work_thread_func()
         {
             m_pending_count--;
 
-            // --- B. ·Ö·¢Âß¼­ ---
+            // --- B. åˆ†å‘é€»è¾‘ ---
             std::lock_guard<std::mutex> lock(m_sub_mutex);
             auto it = m_subscribers.find(msg->type());
             if (it != m_subscribers.end()) 
             {
-                // ±éÀúËùÓĞ¶©ÔÄÕß
+                // éå†æ‰€æœ‰è®¢é˜…è€…
                 for (auto observer : it->second)
                 {
                     try {
@@ -111,13 +111,13 @@ void MessageBus::work_thread_func()
                 }
             }
             else {
-                // Ã»¶©ÔÄÕßµÄÏûÏ¢£¬¿ÉÒÔÑ¡Ôñ´òÓ¡¾¯¸æ
+                // æ²¡è®¢é˜…è€…çš„æ¶ˆæ¯ï¼Œå¯ä»¥é€‰æ‹©æ‰“å°è­¦å‘Š
                 LOGWARN("No subscribers for message type: %d", msg->type());
             }
         }
         else {
-            // --- C. µÈ´ıÂß¼­ (ºËĞÄÓÅ»¯) ---
-            // Èç¹ûÈı¸ö¶ÓÁĞ¶¼¿ÕÁË£¬Ïß³Ì¹ÒÆğ¡£
+            // --- C. ç­‰å¾…é€»è¾‘ (æ ¸å¿ƒä¼˜åŒ–) ---
+            // å¦‚æœä¸‰ä¸ªé˜Ÿåˆ—éƒ½ç©ºäº†ï¼Œçº¿ç¨‹æŒ‚èµ·ã€‚
             std::unique_lock<std::mutex> lock(m_cv_mutex);
             m_cv.wait(lock, [this] {
                 return !m_running || m_pending_count > 0;

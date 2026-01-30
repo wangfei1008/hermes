@@ -9,11 +9,11 @@ class IMessageObserver
 public:
     virtual ~IMessageObserver() = default;
 
-    // µ±ÏûÏ¢µ½´ïÊ±£¬Bus »áµ÷ÓÃÕâ¸öº¯Êı
-    // ·µ»ØÖµ£º±£Áô¸øÎ´À´À©Õ¹£¨ÀıÈçÊÇ·ñÏû·ÑµôÁËÏûÏ¢£©£¬Ä¿Ç°¿ÉºöÂÔ
+    // å½“æ¶ˆæ¯åˆ°è¾¾æ—¶ï¼ŒBus ä¼šè°ƒç”¨è¿™ä¸ªå‡½æ•°
+    // è¿”å›å€¼ï¼šä¿ç•™ç»™æœªæ¥æ‰©å±•ï¼ˆä¾‹å¦‚æ˜¯å¦æ¶ˆè´¹æ‰äº†æ¶ˆæ¯ï¼‰ï¼Œç›®å‰å¯å¿½ç•¥
     virtual void on_message(const std::shared_ptr<MessageEnvelope>& msg) = 0;
 
-    // »ñÈ¡¹Û²ìÕßÃû³Æ£¨ÓÃÓÚµ÷ÊÔÈÕÖ¾£©
+    // è·å–è§‚å¯Ÿè€…åç§°ï¼ˆç”¨äºè°ƒè¯•æ—¥å¿—ï¼‰
     virtual std::string name() const { return "UnknownObserver"; }
 };
 

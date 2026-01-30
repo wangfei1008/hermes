@@ -4,10 +4,10 @@
 #include "data_context.h"
 
 struct DeviceContext {
-    int device_uuid;   // Éè±¸µÄÎ¨Ò»ID£¬¶ÔÓ¦ MessagePayload ÖĞµÄ from/to uuid
+    int device_uuid;   // è®¾å¤‡çš„å”¯ä¸€IDï¼Œå¯¹åº” MessagePayload ä¸­çš„ from/to uuid
     std::string device_name;
-    int stream_id;             // ¹ØÁªµÄÈÎÎñÁ÷ID
-    // ¸ÃÉè±¸ÌØÓĞµÄ¾²Ì¬ÅäÖÃĞÅÏ¢
+    int stream_id;             // å…³è”çš„ä»»åŠ¡æµID
+    // è¯¥è®¾å¤‡ç‰¹æœ‰çš„é™æ€é…ç½®ä¿¡æ¯
 };
 
 class IComponent 

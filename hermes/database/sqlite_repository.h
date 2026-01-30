@@ -13,31 +13,31 @@ public:
 
     static std::string err_message();
 
-    // ³õÊ¼»¯Êı¾İ¿â±í½á¹¹
+    // åˆå§‹åŒ–æ•°æ®åº“è¡¨ç»“æ„
     static bool open(const std::string& db_path);
 
-    // ¹Ø±ÕÊı¾İ¿â
+    // å…³é—­æ•°æ®åº“
     static void close();
 
     static bool init_tables();
 
-    //»ñÈ¡ËùÓĞÉè±¸
+    //è·å–æ‰€æœ‰è®¾å¤‡
     static std::vector<DeviceDTO> query_all_device();
 
     static DeviceDTO query_device(int device_id);
 
     static std::vector<StreamDTO> query_streams_by_device(int device_id);
 
-    // ¸ù¾İĞ­ÒéID»ñÈ¡Êı¾İµã
+    // æ ¹æ®åè®®IDè·å–æ•°æ®ç‚¹
     static std::vector<DataPointDTO> query_points_by_device(int device_id);
 
 
     static std::vector<ComponectDTO> query_components_by_stream(int stream_id);
 
 private:
-    // ¸¨Öúº¯Êı£º°²È«µØ½« SQLite µÄ unsigned char* ×ªÎª std::string
+    // è¾…åŠ©å‡½æ•°ï¼šå®‰å…¨åœ°å°† SQLite çš„ unsigned char* è½¬ä¸º std::string
     static std::string column_text(sqlite3_stmt* stmt, int col_index);
-    // ¸¨Öúº¯Êı£ºÖ´ĞĞ¼òµ¥µÄ EXEC
+    // è¾…åŠ©å‡½æ•°ï¼šæ‰§è¡Œç®€å•çš„ EXEC
     static bool execute_query(const std::string& sql);
 private:
     static inline sqlite3* m_db = nullptr;

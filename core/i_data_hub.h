@@ -5,7 +5,7 @@
 #include <functional>
 #include "data_context.h"
 
-// ¶©ÔÄÕß»Øµ÷¶¨Òå£ºµ±ÓĞĞÂµÄ DataContext ²úÉúÊ±Í¨Öª
+// è®¢é˜…è€…å›è°ƒå®šä¹‰ï¼šå½“æœ‰æ–°çš„ DataContext äº§ç”Ÿæ—¶é€šçŸ¥
 using DataCallback = std::function<void(DataContext::Ptr)>;
 
 class IDataHub 
@@ -13,18 +13,18 @@ class IDataHub
 public:
     virtual ~IDataHub() = default;
 
-    // --- 1. Éú²úÕß½Ó¿Ú£º×é¼şÁ÷½«½á¹û¡°ÍÆ¡±¸ø×ÜÏß ---
+    // --- 1. ç”Ÿäº§è€…æ¥å£ï¼šç»„ä»¶æµå°†ç»“æœâ€œæ¨â€ç»™æ€»çº¿ ---
     virtual void publish(DataContext::Ptr pkg) = 0;
 
-    // --- 2. Ïû·ÑÕß½Ó¿Ú£ºUI »ò ×ª·¢×é¼ş¡°¶©ÔÄ¡±Êı¾İ ---
-    // topic ¿ÉÒÔÊÇÉè±¸ UUID£¬»òÕßÊÇÌØ¶¨µÄ DataDomain (Èç ALARM)
+    // --- 2. æ¶ˆè´¹è€…æ¥å£ï¼šUI æˆ– è½¬å‘ç»„ä»¶â€œè®¢é˜…â€æ•°æ® ---
+    // topic å¯ä»¥æ˜¯è®¾å¤‡ UUIDï¼Œæˆ–è€…æ˜¯ç‰¹å®šçš„ DataDomain (å¦‚ ALARM)
     virtual uint64_t subscribe(const std::string& topic, DataCallback cb) = 0;
     virtual void unsubscribe(uint64_t sub_id) = 0;
 
-    // --- 3. Í¬²½²éÑ¯£ºËã·¨×é¼ş²éÑ¯¡°ÆäËûÉè±¸¡±µÄ×î½ü¿ìÕÕ ---
+    // --- 3. åŒæ­¥æŸ¥è¯¢ï¼šç®—æ³•ç»„ä»¶æŸ¥è¯¢â€œå…¶ä»–è®¾å¤‡â€çš„æœ€è¿‘å¿«ç…§ ---
     virtual DataContext::Ptr get_latest(const std::string& device_uuid) = 0;
 
-    // --- 4. ÏµÍ³È«¾Ö±äÁ¿¹²Ïí£¨ÈçÏµÍ³×´Ì¬¡¢ÅäÖÃ¿ìÕÕ£© ---
+    // --- 4. ç³»ç»Ÿå…¨å±€å˜é‡å…±äº«ï¼ˆå¦‚ç³»ç»ŸçŠ¶æ€ã€é…ç½®å¿«ç…§ï¼‰ ---
     virtual void set_global_attr(const std::string& key, const wf::Variant& val) = 0;
     virtual wf::Variant get_global_attr(const std::string& key) = 0;
 };

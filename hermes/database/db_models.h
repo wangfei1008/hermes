@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-//¶ÔÓ¦±í:device_streams
+//å¯¹åº”è¡¨:device_streams
 struct StreamDTO
 {
     int id;
@@ -13,7 +13,7 @@ struct StreamDTO
     std::string stream_name;
 };
 
-//¶ÔÓ¦±í:stream_components
+//å¯¹åº”è¡¨:stream_components
 struct ComponectDTO
 {
     int id;
@@ -23,7 +23,7 @@ struct ComponectDTO
     std::string comp_config;
     int output_to_next;
 };
-// ¶ÔÓ¦±í: data_point
+// å¯¹åº”è¡¨: data_point
 struct DataPointDTO
 {
     int point_id;
@@ -39,7 +39,7 @@ struct DataPointDTO
     std::string updated_at;
 };
 
-// ¶ÔÓ¦±í: protocol_config
+// å¯¹åº”è¡¨: protocol_config
 struct ProtocolConfigDTO 
 {
     int id;
@@ -55,7 +55,7 @@ struct ProtocolConfigDTO
     std::string created_at;
 };
 
-// ¶ÔÓ¦±í: device
+// å¯¹åº”è¡¨: device
 struct DeviceDTO
 {
     int id;

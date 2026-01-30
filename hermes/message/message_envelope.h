@@ -6,20 +6,20 @@
 class MessageEnvelope 
 {
 public:
-    // ¹¹Ôìº¯ÊıÍ¨¹ı std::move ½ÓÊÕÔØºÉ£¬ÊµÏÖ¡°Áã¿½±´¡±Èë¶Ó
+    // æ„é€ å‡½æ•°é€šè¿‡ std::move æ¥æ”¶è½½è·ï¼Œå®ç°â€œé›¶æ‹·è´â€å…¥é˜Ÿ
     MessageEnvelope(MessagePayload payload, MessagePriority priority = MP_NORMAL)
         : m_payload(std::move(payload))
         , m_priority(priority)
     {
     }
 
-    // Ä¬ÈÏÎö¹¹ºÍ¿½±´£¬±£³Ö¼ò½à
+    // é»˜è®¤ææ„å’Œæ‹·è´ï¼Œä¿æŒç®€æ´
     ~MessageEnvelope() = default;
 
     MessageType type() const { return static_cast<MessageType>(m_payload.type()); }
     MessagePriority priority() const { return m_priority; }
 
-    // »ñÈ¡ÔØºÉÒıÓÃ
+    // è·å–è½½è·å¼•ç”¨
     const MessagePayload& payload() const { return m_payload; }
 
 private:

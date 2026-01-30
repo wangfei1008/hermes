@@ -8,10 +8,10 @@ class PluginLoader
 public:
     static PluginLoader& instance();
 
-    //¸ù¾İ¿âÎÄ¼şÃû£¬»ñÈ¡ĞÂµÄ×é¼ş¡£¿ÉÒÔ×Ô¶¯¼ÓÔØ¿â
+    //æ ¹æ®åº“æ–‡ä»¶åï¼Œè·å–æ–°çš„ç»„ä»¶ã€‚å¯ä»¥è‡ªåŠ¨åŠ è½½åº“
     IComponent* create(const std::string& libname);
 
-    //¸ù¾İ¿âÎÄ¼şÃû¡¢×é¼ş£¬ÊÍ·Å×é¼ş¡£¿ÉÒÔ×Ô¶¯Ğ¶ÔØ¿â¡£
+    //æ ¹æ®åº“æ–‡ä»¶åã€ç»„ä»¶ï¼Œé‡Šæ”¾ç»„ä»¶ã€‚å¯ä»¥è‡ªåŠ¨å¸è½½åº“ã€‚
     void release(const std::string& libname, IComponent* pcomponent);
 private:
     PluginLoader() = default;

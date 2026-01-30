@@ -6,8 +6,8 @@
 #include "db_models.h"
 
 /**
- * DeviceBuilder: Éè±¸¹¹½¨Æ÷
- * Ö°Ôğ£º´ÓÊı¾İ¿â¶ÁÈ¡ÅäÖÃ£¬¹¹½¨ÍêÕûµÄÉè±¸´úÀíºÍÖ´ĞĞÁ÷
+ * DeviceBuilder: è®¾å¤‡æ„å»ºå™¨
+ * èŒè´£ï¼šä»æ•°æ®åº“è¯»å–é…ç½®ï¼Œæ„å»ºå®Œæ•´çš„è®¾å¤‡ä»£ç†å’Œæ‰§è¡Œæµ
  */
 
 class DeviceBuilder
@@ -17,18 +17,18 @@ public:
     ~DeviceBuilder() = default;
 
     /**
-     * ¹¹½¨Éè±¸´úÀí
-     * @param device_info Éè±¸ĞÅÏ¢
-     * @param hub Êı¾İÖĞĞÄ£¨±ØĞë·Ç¿Õ£©
-     * @return Éè±¸´úÀíÖÇÄÜÖ¸Õë
+     * æ„å»ºè®¾å¤‡ä»£ç†
+     * @param device_info è®¾å¤‡ä¿¡æ¯
+     * @param hub æ•°æ®ä¸­å¿ƒï¼ˆå¿…é¡»éç©ºï¼‰
+     * @return è®¾å¤‡ä»£ç†æ™ºèƒ½æŒ‡é’ˆ
      */
     std::shared_ptr<DeviceProxy> build(const DeviceDTO& device_info);
 private:
     /**
-     * ×é×°µ¥¸öÖ´ĞĞÁ÷
-     * @param s_info Á÷ĞÅÏ¢
-     * @param hub Êı¾İÖĞĞÄ
-     * @return Ö´ĞĞÁ÷ÖÇÄÜÖ¸Õë
+     * ç»„è£…å•ä¸ªæ‰§è¡Œæµ
+     * @param s_info æµä¿¡æ¯
+     * @param hub æ•°æ®ä¸­å¿ƒ
+     * @return æ‰§è¡Œæµæ™ºèƒ½æŒ‡é’ˆ
      */
     std::unique_ptr<ExecutionStream> assemble_stream(const DeviceDTO& device_info, const StreamDTO& stream_info);
 };

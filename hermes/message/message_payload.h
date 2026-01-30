@@ -5,34 +5,34 @@
 #include <utility>
 #include "message_bus_types.h"
 
-// ¸ü¼ÓÖ±¹ÛµÄ¶Ëµã¶¨Òå
+// æ›´åŠ ç›´è§‚çš„ç«¯ç‚¹å®šä¹‰
 struct Endpoint {
     std::string uuid;
     std::string name;
 
-    // Ê¹ÓÃ±àÒëÆ÷Ä¬ÈÏÉú³ÉµÄ¿½±´ºÍÒÆ¶¯
+    // ä½¿ç”¨ç¼–è¯‘å™¨é»˜è®¤ç”Ÿæˆçš„æ‹·è´å’Œç§»åŠ¨
 };
 
 class MessagePayload {
 public:
-    // 1. Ê¹ÓÃ Struct ·ç¸ñ»¹ÊÇ Class ·ç¸ñ£¿
-     // ¶ÔÓÚÕâÖÖÖ»´æÊı¾İµÄÀà£¬¹«¿ª³ÉÔ±²¢²»Ğß³Ü£¬·´¶ø¸üÇåÎú¡£
-     // µ«ÎªÁË±£³Ö¼æÈİĞÔ£¬ÎÒÃÇÓÅ»¯ÆäÄÚ²¿ÊµÏÖ¡£
+    // 1. ä½¿ç”¨ Struct é£æ ¼è¿˜æ˜¯ Class é£æ ¼ï¼Ÿ
+     // å¯¹äºè¿™ç§åªå­˜æ•°æ®çš„ç±»ï¼Œå…¬å¼€æˆå‘˜å¹¶ä¸ç¾è€»ï¼Œåè€Œæ›´æ¸…æ™°ã€‚
+     // ä½†ä¸ºäº†ä¿æŒå…¼å®¹æ€§ï¼Œæˆ‘ä»¬ä¼˜åŒ–å…¶å†…éƒ¨å®ç°ã€‚
 
-    MessagePayload() = default; // Ä¬ÈÏ¹¹Ôì
-    ~MessagePayload() = default; // Ä¬ÈÏÎö¹¹
+    MessagePayload() = default; // é»˜è®¤æ„é€ 
+    ~MessagePayload() = default; // é»˜è®¤ææ„
 
-    // 2. ¹Ø¼üÓÅ»¯£º±àÒëÆ÷×Ô¶¯Éú³ÉµÄ ¿½±´ ºÍ ÒÆ¶¯
-    // Ö»Òª³ÉÔ±±äÁ¿¶¼ÊÇ¿É¿½±´/¿ÉÒÆ¶¯µÄ£¨string ÊÇ£©£¬±àÒëÆ÷Éú³ÉµÄ°æ±¾ÊÇ×îÓÅµÄ¡£
+    // 2. å…³é”®ä¼˜åŒ–ï¼šç¼–è¯‘å™¨è‡ªåŠ¨ç”Ÿæˆçš„ æ‹·è´ å’Œ ç§»åŠ¨
+    // åªè¦æˆå‘˜å˜é‡éƒ½æ˜¯å¯æ‹·è´/å¯ç§»åŠ¨çš„ï¼ˆstring æ˜¯ï¼‰ï¼Œç¼–è¯‘å™¨ç”Ÿæˆçš„ç‰ˆæœ¬æ˜¯æœ€ä¼˜çš„ã€‚
     MessagePayload(const MessagePayload&) = default;
     MessagePayload& operator=(const MessagePayload&) = default;
 
-    // ÏÔÊ½ÉùÃ÷Ö§³ÖÒÆ¶¯ÓïÒå (Move Semantics) !!! 
-    // ÕâÊÇĞÔÄÜÓÅ»¯µÄºËĞÄ
+    // æ˜¾å¼å£°æ˜æ”¯æŒç§»åŠ¨è¯­ä¹‰ (Move Semantics) !!! 
+    // è¿™æ˜¯æ€§èƒ½ä¼˜åŒ–çš„æ ¸å¿ƒ
     MessagePayload(MessagePayload&&) noexcept = default;
     MessagePayload& operator=(MessagePayload&&) noexcept = default;
 
-    // ¸¨Öú¹¹Ôìº¯Êı£¨Ö§³ÖÒÆ¶¯×Ö·û´®£¬±ÜÃâ¿½±´£©
+    // è¾…åŠ©æ„é€ å‡½æ•°ï¼ˆæ”¯æŒç§»åŠ¨å­—ç¬¦ä¸²ï¼Œé¿å…æ‹·è´ï¼‰
     MessagePayload(MessageType t, std::string pkg_data)
         : m_type(t), m_package(std::move(pkg_data)) {
     }
@@ -41,24 +41,24 @@ public:
     const Endpoint& from() const { return m_from; }
     const Endpoint& to() const { return m_to; }
     unsigned long id() const { return m_id; }
-    MessageType type() const { return m_type; } // Ö±½Ó·µ»Ø Enum
+    MessageType type() const { return m_type; } // ç›´æ¥è¿”å› Enum
     const std::string& body() const { return m_package; }
 
-    // Setters (Ö§³ÖÁ´Ê½µ÷ÓÃ£¬Ö§³ÖÒÆ¶¯ÓÅ»¯)
+    // Setters (æ”¯æŒé“¾å¼è°ƒç”¨ï¼Œæ”¯æŒç§»åŠ¨ä¼˜åŒ–)
     MessagePayload& set_from(Endpoint ep) { m_from = std::move(ep); return *this; }
     MessagePayload& set_to(Endpoint ep) { m_to = std::move(ep); return *this; }
     MessagePayload& set_id(unsigned long id) { m_id = id; return *this; }
     MessagePayload& set_type(MessageType t) { m_type = t; return *this; }
 
-    // Õë¶Ô´óÊı¾İµÄ Setter ÓÅ»¯
+    // é’ˆå¯¹å¤§æ•°æ®çš„ Setter ä¼˜åŒ–
     MessagePayload& set_package(std::string pkg) { m_package = std::move(pkg); return *this; }
-    // ·µ»ØÒıÓÃ±ÜÃâ¿½±´
+    // è¿”å›å¼•ç”¨é¿å…æ‹·è´
     const std::string& get_package() const { return m_package; }
 private:
     Endpoint m_from;
     Endpoint m_to;
     unsigned long m_id = 0;
-    MessageType m_type = MESSAGE_NONE; // Ê¹ÓÃÇ¿ÀàĞÍ£¬³õÊ¼»¯
+    MessageType m_type = MESSAGE_NONE; // ä½¿ç”¨å¼ºç±»å‹ï¼Œåˆå§‹åŒ–
     std::string m_package;
 };
 

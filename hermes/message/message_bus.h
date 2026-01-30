@@ -13,24 +13,24 @@
 class MessageBus 
 {
 public:
-    // µ¥Àı»ñÈ¡
+    // å•ä¾‹è·å–
     static MessageBus& instance();
 
-    // 1. ¶©ÔÄÏûÏ¢
-    // observer: Ë­ÏëÌı
-    // type: ÏëÌıÄÄÖÖÀàĞÍµÄÏûÏ¢
+    // 1. è®¢é˜…æ¶ˆæ¯
+    // observer: è°æƒ³å¬
+    // type: æƒ³å¬å“ªç§ç±»å‹çš„æ¶ˆæ¯
     void subscribe(MessageType type, IMessageObserver* observer);
 
-    // 2. È¡Ïû¶©ÔÄ
+    // 2. å–æ¶ˆè®¢é˜…
     void unsubscribe(MessageType type, IMessageObserver* observer);
 
-    // 3. ·¢²¼ÏûÏ¢ (Ïß³Ì°²È«£¬¿ÉÔÚÈÎºÎµØ·½µ÷ÓÃ)
+    // 3. å‘å¸ƒæ¶ˆæ¯ (çº¿ç¨‹å®‰å…¨ï¼Œå¯åœ¨ä»»ä½•åœ°æ–¹è°ƒç”¨)
     void push(const std::shared_ptr<MessageEnvelope>& msg);
 
-    // ¼ò±ãÖØÔØ
+    // ç®€ä¾¿é‡è½½
     void push(MessageType type, std::string info, MessagePriority priority = MessagePriority::MP_NORMAL);
 
-    // 4. Æô¶¯/Í£Ö¹ ×ÜÏß·Ö·¢Ïß³Ì
+    // 4. å¯åŠ¨/åœæ­¢ æ€»çº¿åˆ†å‘çº¿ç¨‹
     void start();
     void stop();
 
@@ -38,24 +38,24 @@ private:
     MessageBus();
     ~MessageBus();
 
-    // ÄÚ²¿¹¤×÷Ïß³Ì£ºÌæ´úÁËÄãÔ­À´µÄ message_processor
+    // å†…éƒ¨å·¥ä½œçº¿ç¨‹ï¼šæ›¿ä»£äº†ä½ åŸæ¥çš„ message_processor
     void work_thread_func();
 
 private:
-    // ÓÅÏÈ¼¶¶ÓÁĞ×é£ºÎªÁËÊµÏÖÕæÕıµÄÓÅÏÈ¼¶£¬ÎÒÃÇÊ¹ÓÃÈı¸ö¶ÀÁ¢µÄÎŞËø¶ÓÁĞ
+    // ä¼˜å…ˆçº§é˜Ÿåˆ—ç»„ï¼šä¸ºäº†å®ç°çœŸæ­£çš„ä¼˜å…ˆçº§ï¼Œæˆ‘ä»¬ä½¿ç”¨ä¸‰ä¸ªç‹¬ç«‹çš„æ— é”é˜Ÿåˆ—
     // index 0: LOW, 1: NORMAL, 2: HIGH
     moodycamel::ConcurrentQueue<std::shared_ptr<MessageEnvelope>> m_queues[3];
 
-    // ¶©ÔÄÕßÁĞ±í£ºKey=ÏûÏ¢ÀàĞÍ, Value=¹Û²ìÕßÁĞ±í
+    // è®¢é˜…è€…åˆ—è¡¨ï¼šKey=æ¶ˆæ¯ç±»å‹, Value=è§‚å¯Ÿè€…åˆ—è¡¨
     std::map<MessageType, std::vector<IMessageObserver*>> m_subscribers;
-    std::mutex m_sub_mutex; // ±£»¤ m_subscribers µÄ¶ÁĞ´
+    std::mutex m_sub_mutex; // ä¿æŠ¤ m_subscribers çš„è¯»å†™
 
-    // Ïß³ÌÍ¬²½»úÖÆ
+    // çº¿ç¨‹åŒæ­¥æœºåˆ¶
     std::thread m_worker_thread;
     std::atomic<bool> m_running{ false };
     std::condition_variable m_cv;
     std::mutex m_cv_mutex;
-    std::atomic<int> m_pending_count{ 0 }; // ´ı´¦ÀíÏûÏ¢×ÜÊı
+    std::atomic<int> m_pending_count{ 0 }; // å¾…å¤„ç†æ¶ˆæ¯æ€»æ•°
 };
 
 #endif

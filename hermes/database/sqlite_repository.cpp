@@ -3,13 +3,13 @@
 #include "log/log.h"
 #include "db_defines.h"
 
-// ¹¹Ôìº¯Êı£º³õÊ¼»¯Ö¸Õë
+// æ„é€ å‡½æ•°ï¼šåˆå§‹åŒ–æŒ‡é’ˆ
 
 SQLiteRepository::SQLiteRepository() 
 {
 }
 
-// Îö¹¹º¯Êı£ºÈ·±£¹Ø±ÕÁ¬½Ó
+// ææ„å‡½æ•°ï¼šç¡®ä¿å…³é—­è¿æ¥
 SQLiteRepository::~SQLiteRepository() 
 {
     close();
@@ -36,7 +36,7 @@ bool SQLiteRepository::init_tables()
 {
     std::ostringstream oss;
 
-    // 1. ´´½¨ Device ±í
+    // 1. åˆ›å»º Device è¡¨
     oss << SQL_CREATE_IF_NOT_EXISTS << " " << TABLE_DEVICE << "("
         << FIELD_DEVICE_ID << " " << SQL_PRIMARY_KEY_AUTOINCREMENT << ","
         << FIELD_DEVICE_NAME << " TEXT NOT NULL UNIQUE,"
@@ -45,7 +45,7 @@ bool SQLiteRepository::init_tables()
         << FIELD_DEVICE_UPDATED_AT << " TEXT DEFAULT " << SQL_NOW_LOCALTIME
         << ");";
 
-    // 2. ´´½¨ Protocol Config ±í
+    // 2. åˆ›å»º Protocol Config è¡¨
     oss << SQL_CREATE_IF_NOT_EXISTS << " " << TABLE_PROTOCOL_CONFIG << "("
         << FIELD_CONFIG_ID << " " << SQL_PRIMARY_KEY_AUTOINCREMENT << ","
         << FIELD_CONFIG_DEVICE_ID << " INTEGER NOT NULL,"
@@ -62,7 +62,7 @@ bool SQLiteRepository::init_tables()
         << "FOREIGN KEY(" << FIELD_CONFIG_DEVICE_ID << ") REFERENCES " << TABLE_DEVICE << "(" << FIELD_DEVICE_ID << ") ON DELETE CASCADE"
         << ");";
 
-    // 3. ´´½¨ Data Point ±í
+    // 3. åˆ›å»º Data Point è¡¨
     oss << SQL_CREATE_IF_NOT_EXISTS << " " << TABLE_DATA_POINT << "("
         << FIELD_POINT_ID << " " << SQL_PRIMARY_KEY_AUTOINCREMENT << ","
         << FIELD_POINT_DEVICE_ID << " INTEGER NOT NULL,"
@@ -78,7 +78,7 @@ bool SQLiteRepository::init_tables()
         << "FOREIGN KEY(" << FIELD_POINT_DEVICE_ID << ") REFERENCES " << TABLE_DEVICE << "(" << FIELD_DEVICE_ID << ") ON DELETE CASCADE"
         << ");";
 
-    // 4. ´´½¨ Data Point Record ±í
+    // 4. åˆ›å»º Data Point Record è¡¨
     oss << SQL_CREATE_IF_NOT_EXISTS << " " << TABLE_DATA_POINT_RECORD << "("
         << FIELD_RECORD_ID << " " << SQL_PRIMARY_KEY_AUTOINCREMENT << ","
         << FIELD_RECORD_POINT_ID << " INTEGER NOT NULL,"
@@ -87,8 +87,8 @@ bool SQLiteRepository::init_tables()
         << "FOREIGN KEY(" << FIELD_RECORD_POINT_ID << ") REFERENCES " << TABLE_DATA_POINT << "(" << FIELD_POINT_ID << ") ON DELETE CASCADE"
         << ");";
 
-    // 5. ´´½¨ device_streams ±í (×é¼şÁ÷¶¨Òå)
-    // ¼ÙÉè³£Á¿¶¨ÒåÎª: TABLE_DEVICE_STREAMS, FIELD_STREAM_ID, FIELD_STREAM_DEVICE_ID, FIELD_STREAM_NAME, FIELD_STREAM_IS_ACTIVE
+    // 5. åˆ›å»º device_streams è¡¨ (ç»„ä»¶æµå®šä¹‰)
+    // å‡è®¾å¸¸é‡å®šä¹‰ä¸º: TABLE_DEVICE_STREAMS, FIELD_STREAM_ID, FIELD_STREAM_DEVICE_ID, FIELD_STREAM_NAME, FIELD_STREAM_IS_ACTIVE
     oss << SQL_CREATE_IF_NOT_EXISTS << " " << TABLE_DEVICE_STREAMS << "("
         << FIELD_STREAM_ID << " " << SQL_PRIMARY_KEY_AUTOINCREMENT << ","
         << FIELD_STREAM_DEVICE_ID << " INTEGER,"
@@ -97,8 +97,8 @@ bool SQLiteRepository::init_tables()
         << "FOREIGN KEY(" << FIELD_STREAM_DEVICE_ID << ") REFERENCES " << TABLE_DEVICE << "(" << FIELD_DEVICE_ID << ") ON DELETE CASCADE"
         << ");";
 
-    // 6. ´´½¨ stream_components ±í (Á÷ÖĞµÄ×é¼ş½Úµã)
-    // ¼ÙÉè³£Á¿¶¨ÒåÎª: TABLE_STREAM_COMPONENTS, FIELD_COMP_ID, FIELD_COMP_STREAM_ID, FIELD_COMP_ORDER_INDEX, 
+    // 6. åˆ›å»º stream_components è¡¨ (æµä¸­çš„ç»„ä»¶èŠ‚ç‚¹)
+    // å‡è®¾å¸¸é‡å®šä¹‰ä¸º: TABLE_STREAM_COMPONENTS, FIELD_COMP_ID, FIELD_COMP_STREAM_ID, FIELD_COMP_ORDER_INDEX, 
     // FIELD_COMP_LIB_NAME, FIELD_COMP_CONFIG, FIELD_COMP_OUTPUT_NEXT
     oss << SQL_CREATE_IF_NOT_EXISTS << " " << TABLE_STREAM_COMPONENTS << "("
         << FIELD_COMP_ID << " " << SQL_PRIMARY_KEY_AUTOINCREMENT << ","
@@ -111,7 +111,7 @@ bool SQLiteRepository::init_tables()
         << ");";
     if (!execute_query(oss.str())) return false;
 
-    // 5. ´´½¨Ë÷Òı
+    // 5. åˆ›å»ºç´¢å¼•
     std::ostringstream ioss;
     ioss << SQL_CREATE_INDEX_IF_NOT_EXISTS << " " << INDEX_DEVICE_PROTOCOL
         << " ON " << TABLE_DEVICE << "(" << FIELD_DEVICE_PROTOCOL << ", " << FIELD_DEVICE_NAME << ");"
@@ -126,14 +126,14 @@ bool SQLiteRepository::init_tables()
     return execute_query(ioss.str());
 }
 
-// ³õÊ¼»¯Êı¾İ¿â
+// åˆå§‹åŒ–æ•°æ®åº“
 bool SQLiteRepository::open(const std::string& db_path) 
 {
     if (m_db) return true;
     MutexLockGuard lock(m_mutex);
     m_db_path = db_path;
 
-    // 1. ´ò¿ªÊı¾İ¿â
+    // 1. æ‰“å¼€æ•°æ®åº“
     int rc = sqlite3_open(m_db_path.c_str(), &m_db);
     if (rc != SQLITE_OK)
     {
@@ -145,7 +145,7 @@ bool SQLiteRepository::open(const std::string& db_path)
     return true;
 }
 
-// ¸¨Öúº¯Êı£º°²È«¶ÁÈ¡ÎÄ±¾ÁĞ
+// è¾…åŠ©å‡½æ•°ï¼šå®‰å…¨è¯»å–æ–‡æœ¬åˆ—
 std::string SQLiteRepository::column_text(sqlite3_stmt* stmt, int col_index)
 {
     const unsigned char* text = sqlite3_column_text(stmt, col_index);
@@ -153,7 +153,7 @@ std::string SQLiteRepository::column_text(sqlite3_stmt* stmt, int col_index)
 }
 
 
-// ¸¨Öúº¯Êı£ºÖ´ĞĞ¼òµ¥µÄ EXEC
+// è¾…åŠ©å‡½æ•°ï¼šæ‰§è¡Œç®€å•çš„ EXEC
 bool SQLiteRepository::execute_query(const std::string& sql) 
 {
     char* z_err_msg = 0;
@@ -166,7 +166,7 @@ bool SQLiteRepository::execute_query(const std::string& sql)
     return true;
 }
 
-//»ñÈ¡ËùÓĞÉè±¸
+//è·å–æ‰€æœ‰è®¾å¤‡
 std::vector<DeviceDTO> SQLiteRepository::query_all_device() 
 {
     sqlite3_stmt* stmt;
@@ -186,25 +186,25 @@ std::vector<DeviceDTO> SQLiteRepository::query_all_device()
         << "ORDER BY d." << FIELD_DEVICE_ID << ";";
     std::string sql = oss.str();
 
-    // Ô¤±àÒë SQL
+    // é¢„ç¼–è¯‘ SQL
     if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK) 
     {
 		LOGERROR("Failed to prepare statement: %s", sqlite3_errmsg(m_db));
         return list;
     }
 
-    // ±éÀú½á¹û¼¯
+    // éå†ç»“æœé›†
     while (sqlite3_step(stmt) == SQLITE_ROW) 
     {
         DeviceDTO device;
-        // device ±í×Ö¶Î
+        // device è¡¨å­—æ®µ
         device.id = sqlite3_column_int(stmt, 0);
         device.name = column_text(stmt, 1);
         device.protocol = column_text(stmt, 2);
         device.created_at = column_text(stmt, 3);
 		device.updated_at = column_text(stmt, 4);
 		
-        // ¼ì²é protocol_config µÄ×Ö¶ÎÊÇ·ñÎª NULL
+        // æ£€æŸ¥ protocol_config çš„å­—æ®µæ˜¯å¦ä¸º NULL
 		auto& protocol_cfg = device.protocol_config;
         protocol_cfg.host = sqlite3_column_type(stmt, 5) != SQLITE_NULL ? column_text(stmt, 5) : "";
 		protocol_cfg.port = sqlite3_column_type(stmt, 6) != SQLITE_NULL ? sqlite3_column_int(stmt, 6) : 0;
@@ -220,7 +220,7 @@ std::vector<DeviceDTO> SQLiteRepository::query_all_device()
         list.push_back(device);
     }
 
-    // ÊÍ·Å Statement
+    // é‡Šæ”¾ Statement
     sqlite3_finalize(stmt);
     return list;
 }
@@ -236,7 +236,7 @@ std::vector<StreamDTO> SQLiteRepository::query_streams_by_device(int device_id)
 }
 
 
-// »ñÈ¡Êı¾İµã
+// è·å–æ•°æ®ç‚¹
 std::vector<DataPointDTO> SQLiteRepository::query_points_by_device(int device_id)
 {
     std::vector<DataPointDTO> list;

@@ -18,7 +18,7 @@ std::string DeviceProxy::name() const
     return m_name;
 }
 
-//1. ºËĞÄÂß¼­£ºÌí¼ÓÌí¼ÓÒ»¸öÍêÕûµÄÁ÷£¬¶ø²»ÊÇÁãÉ¢µÄ×é¼ş
+//1. æ ¸å¿ƒé€»è¾‘ï¼šæ·»åŠ æ·»åŠ ä¸€ä¸ªå®Œæ•´çš„æµï¼Œè€Œä¸æ˜¯é›¶æ•£çš„ç»„ä»¶
 void DeviceProxy::add_stream(std::unique_ptr<ExecutionStream> stream)
 {
     if (stream) 
@@ -27,7 +27,7 @@ void DeviceProxy::add_stream(std::unique_ptr<ExecutionStream> stream)
     }
 }
 
-//2. Éè±¸Æô¶¯ÓëÍ£Ö¹
+//2. è®¾å¤‡å¯åŠ¨ä¸åœæ­¢
 void DeviceProxy::start() 
 {
     LOGINFO("Starting DeviceProxy: %s", m_name.c_str());
@@ -46,14 +46,14 @@ void DeviceProxy::stop()
     }
 }
 
-//3. ÏûÏ¢Â·ÓÉÂß¼­
+//3. æ¶ˆæ¯è·¯ç”±é€»è¾‘
 void DeviceProxy::on_message(const std::shared_ptr<MessageEnvelope>& msg)
 {
-    // È¨ÏŞĞ£Ñé£ºÖ»´¦Àí·¢¸ø±¾Éè±¸»ò¹ã²¥µÄÏûÏ¢
+    // æƒé™æ ¡éªŒï¼šåªå¤„ç†å‘ç»™æœ¬è®¾å¤‡æˆ–å¹¿æ’­çš„æ¶ˆæ¯
     if (msg->payload().to().uuid == m_uuid || msg->payload().to().uuid.empty())
     {
-        // ºËĞÄ¸Ä½ø£º½«ÏûÏ¢ÍÆËÍµ½¸ÃÉè±¸ÏÂµÄÃ¿Ò»¸öÂß¼­Á÷ÖĞ
-        // Ã¿¸öÁ÷ÓĞ×Ô¼ºµÄ ReaderWriterQueue ºÍ´¦ÀíÏß³Ì£¬»¥²»¸ÉÈÅ
+        // æ ¸å¿ƒæ”¹è¿›ï¼šå°†æ¶ˆæ¯æ¨é€åˆ°è¯¥è®¾å¤‡ä¸‹çš„æ¯ä¸€ä¸ªé€»è¾‘æµä¸­
+        // æ¯ä¸ªæµæœ‰è‡ªå·±çš„ ReaderWriterQueue å’Œå¤„ç†çº¿ç¨‹ï¼Œäº’ä¸å¹²æ‰°
         for (auto& stream : m_streams) 
         {
             stream->push_message(msg);

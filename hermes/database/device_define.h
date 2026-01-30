@@ -1,4 +1,4 @@
-﻿#ifndef DEVICE_DEFINE_H
+#ifndef DEVICE_DEFINE_H
 #define DEVICE_DEFINE_H
 
 // ==================== JSON 通用键值 ====================

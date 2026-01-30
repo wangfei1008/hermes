@@ -9,7 +9,7 @@ std::shared_ptr<DeviceProxy> DeviceBuilder::build(const DeviceDTO& dev_info)
 {
     auto proxy = std::make_shared<DeviceProxy>(std::to_string(dev_info.id), dev_info.name);
 
-    // 查询所有流
+    // 鏌ヨ鎵�鏈夋祦
     auto streams = SQLiteRepository::query_streams_by_device(dev_info.id);
     LOGINFO("DeviceBuilder: Building device [%s] with %d streams", dev_info.name.c_str(), streams.size());
     for (auto& s : streams)

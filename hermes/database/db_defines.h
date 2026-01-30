@@ -1,4 +1,4 @@
-﻿#ifndef DATABASE_DEFINES_H
+#ifndef DATABASE_DEFINES_H
 #define DATABASE_DEFINES_H
 
 #include "device_define.h"

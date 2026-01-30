@@ -1,16 +1,16 @@
 #ifndef MESSAGE_BUS_TYPES_H
 #define MESSAGE_BUS_TYPES_H
 
-//ÏûÏ¢ÀàÐÍ
+//æ¶ˆæ¯ç±»åž‹
 enum MessageType
 {
     MESSAGE_NONE = 0,
-    //1¡¢Æô¶¯
+    //1ã€å¯åŠ¨
     MESSAGE_SETUP = 1,
-    //2¡¢Í¨ÓÃ£¨¶ÔÄÚ£©£¬°üÀ¨·þÎñÆ÷ÐÅÏ¢,¿ªÊ¼×ª·¢
+    //2ã€é€šç”¨ï¼ˆå¯¹å†…ï¼‰ï¼ŒåŒ…æ‹¬æœåŠ¡å™¨ä¿¡æ¯,å¼€å§‹è½¬å‘
     MESSAGE_PRIVATE_SERVER = 10,
     MESSAGE_PRIVATE_SEND = 11,
-    //3¡¢Í¨ÓÃ£¨¶ÔÄÚ¡¢Íâ¿ª·¢£©£¬°üÀ¨Æô¶¯¡¢Í£Ö¹¡¢ÅäÖÃ¡¢Ð´¿ØÖÆ
+    //3ã€é€šç”¨ï¼ˆå¯¹å†…ã€å¤–å¼€å‘ï¼‰ï¼ŒåŒ…æ‹¬å¯åŠ¨ã€åœæ­¢ã€é…ç½®ã€å†™æŽ§åˆ¶
     MESSAGE_PUBLICE_START = 20,
     MESSAGE_PUBLICE_STOP = 21,
     MESSAGE_PUBLICE_CONFIG = 22,
@@ -18,7 +18,7 @@ enum MessageType
     MESSAGE_EXCEPTION = 99
 };
 
-//ÏûÏ¢µÈ¼¶
+//æ¶ˆæ¯ç­‰çº§
 enum MessagePriority
 {
     MP_LOW = 0,

@@ -7,13 +7,13 @@
 #include <memory>
 
 
-// ¶¨ÒåÊı¾İÓò£¬ÔöÇ¿Ëã·¨³ĞÔØµÄÂß¼­ÇåÎú¶È
+// å®šä¹‰æ•°æ®åŸŸï¼Œå¢å¼ºç®—æ³•æ‰¿è½½çš„é€»è¾‘æ¸…æ™°åº¦
 enum class DataDomain 
 {
-    TIME_SERIES,    // Ê±ÓòĞòÁĞ£¨²ÉÑùÊı¾İ£©
-    FREQUENCY,      // ÆµÓò£¨·ÖÎö½á¹û£©
-    FEATURE,        // ÌØÕ÷Öµ£¨×î´ó¡¢×îĞ¡¡¢¾ùÖµ£©
-    ALARM           // Âß¼­ÅĞ¶¨£¨±¨¾¯Î»£©
+    TIME_SERIES,    // æ—¶åŸŸåºåˆ—ï¼ˆé‡‡æ ·æ•°æ®ï¼‰
+    FREQUENCY,      // é¢‘åŸŸï¼ˆåˆ†æç»“æœï¼‰
+    FEATURE,        // ç‰¹å¾å€¼ï¼ˆæœ€å¤§ã€æœ€å°ã€å‡å€¼ï¼‰
+    ALARM           // é€»è¾‘åˆ¤å®šï¼ˆæŠ¥è­¦ä½ï¼‰
 };
 
 class DataContext
@@ -21,40 +21,40 @@ class DataContext
 public:
     using Ptr = std::shared_ptr<DataContext>;
 
-    // 1. Ö¡Í·ĞÅÏ¢
+    // 1. å¸§å¤´ä¿¡æ¯
     struct Header 
     {
         std::string source_device;
         int64_t timestamp_ms;
-        uint64_t frame_index; // Ö¡ĞòºÅ£¬Ëã·¨¶ÔÆë±ØÓÃ
+        uint64_t frame_index; // å¸§åºå·ï¼Œç®—æ³•å¯¹é½å¿…ç”¨
     } header;
 
-    // 2. ºËĞÄ£º·Ç¶Ô³Æ±äÁ¿Í°
-    // Ëã·¨Âß¼­¶¨ÖÆµÄ¹Ø¼ü£º²»ÔÙÔ¤¶¨Òå×Ö¶Î£¬È«²¿¶¯Ì¬»¯
+    // 2. æ ¸å¿ƒï¼šéå¯¹ç§°å˜é‡æ¡¶
+    // ç®—æ³•é€»è¾‘å®šåˆ¶çš„å…³é”®ï¼šä¸å†é¢„å®šä¹‰å­—æ®µï¼Œå…¨éƒ¨åŠ¨æ€åŒ–
     struct Item 
     {
-        wf::Variant data;      // ³ĞÔØÊı¾İ£¨µ¥Öµ»òÊı×é£©
-        DataDomain domain;     // Âß¼­Óò
-        std::string lineage;   // ËİÔ´£º¼ÇÂ¼ÊÇÄÄ¸öËã·¨²ú³öµÄ£¨Èç "LowPassFilter_0.5Hz"£©
-        int64_t proc_cost_us;  // Ëã·¨ºÄÊ±Í³¼Æ£¬ÓÃÓÚĞÔÄÜµ÷ÓÅ
+        wf::Variant data;      // æ‰¿è½½æ•°æ®ï¼ˆå•å€¼æˆ–æ•°ç»„ï¼‰
+        DataDomain domain;     // é€»è¾‘åŸŸ
+        std::string lineage;   // æº¯æºï¼šè®°å½•æ˜¯å“ªä¸ªç®—æ³•äº§å‡ºçš„ï¼ˆå¦‚ "LowPassFilter_0.5Hz"ï¼‰
+        int64_t proc_cost_us;  // ç®—æ³•è€—æ—¶ç»Ÿè®¡ï¼Œç”¨äºæ€§èƒ½è°ƒä¼˜
     };
 
-    // Ê¹ÓÃ unordered_map Ìá¸ßËã·¨¼ìË÷Ğ§ÂÊ
+    // ä½¿ç”¨ unordered_map æé«˜ç®—æ³•æ£€ç´¢æ•ˆç‡
     std::unordered_map<std::string, Item> items;
 
-    // 3. Âß¼­¶¨ÖÆÖ§³Å£º¼ÆËãºÚÏ»×Ó (Opaque Params)
-    // ÔÊĞíËã·¨ÔÚÁ÷ÖĞ´«µİË½ÓĞ¶ÔÏó£¨Èç£ºÂË²¨Æ÷µÄ×´Ì¬»úÖ¸Õë¡¢µ±Ç°ÔöÒæ±¶Êı£©
+    // 3. é€»è¾‘å®šåˆ¶æ”¯æ’‘ï¼šè®¡ç®—é»‘åŒ£å­ (Opaque Params)
+    // å…è®¸ç®—æ³•åœ¨æµä¸­ä¼ é€’ç§æœ‰å¯¹è±¡ï¼ˆå¦‚ï¼šæ»¤æ³¢å™¨çš„çŠ¶æ€æœºæŒ‡é’ˆã€å½“å‰å¢ç›Šå€æ•°ï¼‰
     std::unordered_map<std::string, wf::Variant> algo_params;
 
-    // --- Ëã·¨²Ù×÷½Ó¿Ú ---
+    // --- ç®—æ³•æ“ä½œæ¥å£ ---
 
-    // ¶¯Ì¬Ôö¼ÓËã·¨½á¹û
+    // åŠ¨æ€å¢åŠ ç®—æ³•ç»“æœ
     void push_result(const std::string& name, wf::Variant&& val, DataDomain dom, const std::string& algo_name)
     {
         items[name] = { std::move(val), dom, algo_name, 0 };
     }
 
-    // Âß¼­ÅĞ¶¨£ºËã·¨¿ÉÒÔ¸ù¾İ°üÄÚÒÑÓĞµÄ Lineage ¾ö¶¨ÊÇ·ñÖ´ĞĞ
+    // é€»è¾‘åˆ¤å®šï¼šç®—æ³•å¯ä»¥æ ¹æ®åŒ…å†…å·²æœ‰çš„ Lineage å†³å®šæ˜¯å¦æ‰§è¡Œ
     bool was_processed_by(const std::string& algo_name) const 
     {
         for (auto& [k, v] : items) 

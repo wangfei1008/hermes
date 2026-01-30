@@ -20,36 +20,36 @@ class LibraryLoader
 public:
     enum LoadHint {
         None = 0x0,
-        ResolveAllSymbolsHint = 0x01,     // ¶ÔÓ¦ RTLD_NOW
-        ExportExternalSymbolsHint = 0x02, // ¶ÔÓ¦ RTLD_GLOBAL
-        PreventUnloadHint = 0x08          // ¶ÔÓ¦ RTLD_NODELETE
+        ResolveAllSymbolsHint = 0x01,     // å¯¹åº” RTLD_NOW
+        ExportExternalSymbolsHint = 0x02, // å¯¹åº” RTLD_GLOBAL
+        PreventUnloadHint = 0x08          // å¯¹åº” RTLD_NODELETE
     };
 
     explicit LibraryLoader(const std::string& file_name = "");
     ~LibraryLoader();
 
-    // ½ûÓÃ¿½±´ÓïÒå
+    // ç¦ç”¨æ‹·è´è¯­ä¹‰
     LibraryLoader(const LibraryLoader&) = delete;
     LibraryLoader& operator=(const LibraryLoader&) = delete;
 
-    // »ù´¡²Ù×÷
+    // åŸºç¡€æ“ä½œ
     bool load();
     bool unload();
     bool is_loaded() const;
 
-    // ·ûºÅ½âÎö (¼æÈİÔ­ÉúĞ´·¨)
+    // ç¬¦å·è§£æ (å…¼å®¹åŸç”Ÿå†™æ³•)
     void* resolve(const char* symbol);
 
-    // Ä£°å½âÎö (ÀàĞÍ°²È«£¬ÍÆ¼öÓÃ·¨)
+    // æ¨¡æ¿è§£æ (ç±»å‹å®‰å…¨ï¼Œæ¨èç”¨æ³•)
     template <typename T>
     T resolve_as(const char* symbol) {
         return reinterpret_cast<T>(resolve(symbol));
     }
 
-    // ¾²Ì¬¿ì½İ½âÎö
+    // é™æ€å¿«æ·è§£æ
     static void* resolve(const std::string& file_name, const char* symbol);
 
-    // ÊôĞÔÉèÖÃ
+    // å±æ€§è®¾ç½®
     void set_file_name(const std::string& file_name);
     std::string file_name() const;
     void set_load_hints(int hints);

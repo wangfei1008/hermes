@@ -15,11 +15,11 @@ class ComponentLoader
 public:
     ComponentLoader(const std::string& libname);
 
-    //´´½¨ĞÂ×é¼ş
+    //åˆ›å»ºæ–°ç»„ä»¶
     IComponent* create();
-    //ÊÍ·Å×é¼ş£¬µ±ÎŞ×é¼şÊ±×Ô¶¯Ğ¶ÔØ¶¯Ì¬¿â
+    //é‡Šæ”¾ç»„ä»¶ï¼Œå½“æ— ç»„ä»¶æ—¶è‡ªåŠ¨å¸è½½åŠ¨æ€åº“
     bool release(IComponent* pcomponent);
-    //ÊÍ·ÅËùÓĞ×é¼ş£¬ÇÒĞ¶ÔØ¶¯Ì¬¿â
+    //é‡Šæ”¾æ‰€æœ‰ç»„ä»¶ï¼Œä¸”å¸è½½åŠ¨æ€åº“
     bool release();
 
     ComponentLoader& operator=(const ComponentLoader& other) = default;
@@ -29,10 +29,10 @@ private:
     bool release_component(IComponent* pcomponent);
 
 private:
-    LibraryLoader* m_plib;                                                       //¶¯Ì¬¿â¾ä±ú
-    CreateComponent m_create_func;                                               //´´½¨×é¼şº¯Êı
-    ReleaseComponent m_release_func;                                             //ÊÍ·Å×é¼şº¯Êı
-    std::list<IComponent*> m_list;                                               //×é¼şÖ¸Õë¶ÓÁĞ
+    LibraryLoader* m_plib;                                                       //åŠ¨æ€åº“å¥æŸ„
+    CreateComponent m_create_func;                                               //åˆ›å»ºç»„ä»¶å‡½æ•°
+    ReleaseComponent m_release_func;                                             //é‡Šæ”¾ç»„ä»¶å‡½æ•°
+    std::list<IComponent*> m_list;                                               //ç»„ä»¶æŒ‡é’ˆé˜Ÿåˆ—
 };
 
 #endif // COMPONENT_LOADER_H

@@ -11,14 +11,14 @@ public:
 
     ~DeviceProxy();
 
-    // 1.ºËĞÄÂß¼­£ºÌí¼ÓÌí¼ÓÒ»¸öÍêÕûµÄÁ÷£¬¶ø²»ÊÇÁãÉ¢µÄ×é¼ş
+    // 1.æ ¸å¿ƒé€»è¾‘ï¼šæ·»åŠ æ·»åŠ ä¸€ä¸ªå®Œæ•´çš„æµï¼Œè€Œä¸æ˜¯é›¶æ•£çš„ç»„ä»¶
     void add_stream(std::unique_ptr<ExecutionStream> stream);
 
-    // 2. Éè±¸Æô¶¯ÓëÍ£Ö¹
+    // 2. è®¾å¤‡å¯åŠ¨ä¸åœæ­¢
     void start();
     void stop();
 
-    //3. ÏûÏ¢Â·ÓÉÂß¼­
+    //3. æ¶ˆæ¯è·¯ç”±é€»è¾‘
     virtual void on_message(const std::shared_ptr<MessageEnvelope>& msg) override;
 
     virtual std::string name() const override;
