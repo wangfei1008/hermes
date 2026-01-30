@@ -74,6 +74,7 @@ public:
 private:
     int m_id;
     std::string m_name;
+    uint64_t m_data_hub_sub_id
 
     // 三个独立的子系统
     std::unique_ptr<ComponentPipeline> m_pipeline;

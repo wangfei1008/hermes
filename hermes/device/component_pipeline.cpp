@@ -35,11 +35,11 @@ void ComponentPipeline::add_component(IComponent* comp, const std::string& lib_n
     LOGINFO("ComponentPipeline[%d]: Component from [%s] added (total: %d)", m_id, lib_name.c_str(), m_components.size());
 }
 
-void ComponentPipeline::start()
+bool ComponentPipeline::start()
 {
     if (m_started) {
         LOGWARN("ComponentPipeline[%d]: Already started", m_id);
-        return;
+        return false;
     }
 
     for (auto& info : m_components) {
@@ -48,11 +48,16 @@ void ComponentPipeline::start()
             LOGINFO("ComponentPipeline[%d]: Component [%s] started", m_id, info.lib_name.c_str());
         } catch (const std::exception& e) {
             LOGERROR("ComponentPipeline[%d]: Failed to start component [%s]: %s", m_id, info.lib_name.c_str(), e.what());
+            return false;
+        } catch (...) {
+            LOGERROR("ComponentPipeline[%d]: Failed to start component [%s] (unknown error)", m_id, info.lib_name.c_str());
+            return false;
         }
     }
 
     m_started = true;
     LOGINFO("ComponentPipeline[%d:%s] started with %zu components", m_id, m_name.c_str(), m_components.size());
+    return true;
 }
 
 void ComponentPipeline::pause()

@@ -1,6 +1,7 @@
 #include "execution_stream.h"
 #include "log/log.h"
 #include "data_models/data_hub.h"
+#include <string>
 
 ExecutionStream::ExecutionStream(int stream_id, const std::string& name)
     : m_id(stream_id)
@@ -11,9 +12,9 @@ ExecutionStream::ExecutionStream(int stream_id, const std::string& name)
     m_msg_dispatcher = std::make_unique<MessageDispatcher>(stream_id, m_pipeline.get());
     m_data_processor = std::make_unique<DataProcessor>(stream_id, m_pipeline.get());
 
-    DataHub::instance().subscribe(stream_id, [this](DataContext::Ptr data) {
-        this->push_data(data); 
-        });
+    DataHub::instance().subscribe(std::to_string(m_id), [this](DataContext::Ptr data) {
+        this->push_data(data);
+    });
 
     LOGINFO("ExecutionStream[%d:%s] created", m_id, m_name.c_str());
 }

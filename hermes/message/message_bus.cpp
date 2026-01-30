@@ -95,9 +95,13 @@ void MessageBus::work_thread_func()
             m_pending_count--;
 
             // --- B. 分发逻辑 ---
-            std::lock_guard<std::mutex> lock(m_sub_mutex);
-            auto it = m_subscribers.find(msg->type());
-            if (it != m_subscribers.end()) 
+            std::map<MessageType, std::vector<IMessageObserver*>> subscribers;
+            {
+                std::lock_guard<std::mutex> lock(m_sub_mutex);
+                subscribers = m_subscribers;
+            }
+            auto it = subscribers.find(msg->type());
+            if (it != subscribers.end()) 
             {
                 // 遍历所有订阅者
                 for (auto observer : it->second)

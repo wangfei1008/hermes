@@ -29,6 +29,8 @@ public:
     DataHub* get();
 
     // --- 1. 生产者接口：组件流将结果"推"给总线 ---
+    // topic: 流 ID 发给对应流；"0" 发给总转发
+    void publish(const std::string& topic, DataContext::Ptr pkg) override;
     void publish(DataContext::Ptr pkg) override;
 
     // --- 2. 消费者接口：UI 或转发组件"订阅"数据 ---

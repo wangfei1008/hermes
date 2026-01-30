@@ -1,7 +1,7 @@
 #include "data_processor.h"
 #include "log/log.h"
-#include <chrono>
 #include "data_models/data_hub.h"
+#include <chrono>
 
 DataProcessor::DataProcessor(int processor_id, ComponentPipeline* pipeline)
     : m_id(processor_id)
@@ -112,10 +112,9 @@ void DataProcessor::work_loop()
                 auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
 
                 if (success) {
-                    // Pipeline 成功，发布到 DataHub
-                    DataHub::instance().publish(data);
-                    
-                    LOGDEBUG("DataProcessor[%d]: Pipeline executed successfully, published to DataHub (cost: %ld us, frame: %lu)", m_id, duration, data->header.frame_index);
+                    // Pipeline 成功；不在此发布，由结果组件按 topic "0" 发布给总转发
+                    DataHub::instance().publish(DATA_HUB_TOPIC_FORWARD, data);
+                    LOGDEBUG("DataProcessor[%d]: Pipeline executed successfully (cost: %ld us, frame: %lu)", m_id, duration, data->header.frame_index);
                 } else {
                     LOGDEBUG("DataProcessor[%d]: Pipeline stopped (cost: %ld us, frame: %lu)", m_id, duration, data->header.frame_index);
                 }

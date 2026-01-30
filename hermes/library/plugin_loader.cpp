@@ -12,7 +12,7 @@ IComponent* PluginLoader::create(const std::string& libname)
     if (itor != m_libs.end())
         return itor->second.create();
 
-    ComponentLoader handle(libname);
+    unique_ptr<ComponentLoader> handle(new ComponentLoader(libname));
     m_libs.insert(make_pair(libname, handle));
 
     return handle.create();

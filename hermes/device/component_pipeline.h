@@ -34,7 +34,7 @@ public:
     /**
      * 启动所有组件
      */
-    void start();
+    bool start();
 
     /**
      * 暂停所有组件

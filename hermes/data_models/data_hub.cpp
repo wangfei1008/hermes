@@ -32,7 +32,7 @@ DataHub* DataHub::get()
     return this;
 }
 
-void DataHub::publish(DataContext::Ptr pkg)
+void DataHub::publish(const std::string& topic, DataContext::Ptr pkg)
 {
     if (!pkg) {
         LOGWARN("DataHub: Attempting to publish null data");
@@ -41,21 +41,20 @@ void DataHub::publish(DataContext::Ptr pkg)
 
     const std::string& device_uuid = pkg->header.source_device;
 
-    // 1. 更新缓存
+    // 1. 更新缓存（按设备，供 get_latest 使用）
     {
         std::unique_lock<std::shared_mutex> lock(m_cache_mutex);
         m_latest_cache[device_uuid] = pkg;
     }
 
-    LOGDEBUG("DataHub: Published data from device [%s], frame [%lu]", device_uuid.c_str(), pkg->header.frame_index);
+    LOGDEBUG("DataHub: Published to topic [%s] from device [%s], frame [%lu]", topic.c_str(), device_uuid.c_str(), pkg->header.frame_index);
 
-    // 2. 通知订阅者
+    // 2. 通知订阅该 topic 的订阅者
     std::vector<DataCallback> callbacks;
     {
         std::shared_lock<std::shared_mutex> lock(m_sub_mutex);
 
-        // 查找订阅该设备的回调
-        auto range = m_topic_to_subs.equal_range(device_uuid);
+        auto range = m_topic_to_subs.equal_range(topic);
         for (auto it = range.first; it != range.second; ++it)
         {
             auto sub_it = m_subscriptions.find(it->second);
@@ -63,18 +62,18 @@ void DataHub::publish(DataContext::Ptr pkg)
                 callbacks.push_back(sub_it->second.callback);
             }
         }
-
-        // 查找订阅特定域的回调（如 "ALARM"）
-        for (const auto& [key, item] : pkg->items)
+    }
+    
+    // 查找订阅特定域的回调（如 "ALARM"）
+    for (const auto& [key, item] : pkg->items)
+    {
+        std::string domain_topic = "domain:" + std::to_string(static_cast<int>(item.domain));
+        auto domain_range = m_topic_to_subs.equal_range(domain_topic);
+        for (auto it = domain_range.first; it != domain_range.second; ++it)
         {
-            std::string domain_topic = "domain:" + std::to_string(static_cast<int>(item.domain));
-            auto domain_range = m_topic_to_subs.equal_range(domain_topic);
-            for (auto it = domain_range.first; it != domain_range.second; ++it)
-            {
-                auto sub_it = m_subscriptions.find(it->second);
-                if (sub_it != m_subscriptions.end()) {
-                    callbacks.push_back(sub_it->second.callback);
-                }
+            auto sub_it = m_subscriptions.find(it->second);
+            if (sub_it != m_subscriptions.end()) {
+                callbacks.push_back(sub_it->second.callback);
             }
         }
     }
@@ -91,7 +90,13 @@ void DataHub::publish(DataContext::Ptr pkg)
         }
     }
 
-    LOGDEBUG("DataHub: Notified %zu subscribers for device [%s]", callbacks.size(), device_uuid.c_str());
+    LOGDEBUG("DataHub: Notified %zu subscribers for topic [%s]", callbacks.size(), topic.c_str());
+}
+
+void DataHub::publish(DataContext::Ptr pkg)
+{
+    if (!pkg) return;
+    publish(std::to_string(pkg->header.stream_id), pkg);
 }
 
 uint64_t DataHub::subscribe(const std::string& topic, DataCallback cb)

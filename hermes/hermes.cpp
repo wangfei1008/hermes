@@ -14,7 +14,7 @@ int main()
 	// 阻塞主线程，等待输入 'q' 退出
 	char c = 0;
 	while (c = getc(stdin)) {
-		if ('q' == c || 'Q' == c) break;
+		if ('EOF' == c || 'q' == c || 'Q' == c) break;
 	}
 	s.release();
 	LOGINFO("****************************** stop *****************************");

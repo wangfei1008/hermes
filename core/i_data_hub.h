@@ -8,12 +8,18 @@
 // 订阅者回调定义：当有新的 DataContext 产生时通知
 using DataCallback = std::function<void(DataContext::Ptr)>;
 
+// 总转发 topic：结果组件发布到此，转发服务订阅此
+inline constexpr const char* DATA_HUB_TOPIC_FORWARD = "0";
+
 class IDataHub 
 {
 public:
     virtual ~IDataHub() = default;
 
     // --- 1. 生产者接口：组件流将结果“推”给总线 ---
+    // topic: 流 ID（字符串，如 "1"）发给对应流；"0" 发给总转发
+    virtual void publish(const std::string& topic, DataContext::Ptr pkg) = 0;
+    // 兼容：按 pkg->header.source_device 作为 topic 发布
     virtual void publish(DataContext::Ptr pkg) = 0;
 
     // --- 2. 消费者接口：UI 或 转发组件“订阅”数据 ---
