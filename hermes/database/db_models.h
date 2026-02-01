@@ -11,6 +11,7 @@ struct StreamDTO
     int device_id;
     int is_active;
     std::string stream_name;
+    std::string subscribe_topic;  // 订阅的 DataHub topic，空则默认为 stream_id；虚拟设备设为 "0"
 };
 
 //对应表:stream_components

@@ -56,6 +56,7 @@
 #define FIELD_STREAM_DEVICE_ID      JSON_KEY_DEVICE_ID
 #define FIELD_STREAM_NAME           "stream_name"      // 流名称
 #define FIELD_STREAM_IS_ACTIVE      "is_active"        // 激活状态
+#define FIELD_STREAM_SUBSCRIBE_TOPIC "subscribe_topic" // 订阅 topic，空则默认 stream_id，虚拟设备设为 "0"
 #define FIELD_STREAM_CREATED_AT     JSON_KEY_CREATED_AT
 
 // ==================== stream_components 表字段 (新增) ====================

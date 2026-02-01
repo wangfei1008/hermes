@@ -24,7 +24,12 @@ std::shared_ptr<DeviceProxy> DeviceBuilder::build(const DeviceDTO& dev_info)
 
 std::unique_ptr<ExecutionStream> DeviceBuilder::assemble_stream(const DeviceDTO& device_info, const StreamDTO& stream_info)
 {
-    auto stream = std::make_unique<ExecutionStream>(stream_info.id, stream_info.stream_name);
+    // 传入 subscribe_topic：空则默认订阅 stream_id，虚拟设备配置为 "0" 订阅结果数据
+    auto stream = std::make_unique<ExecutionStream>(
+        stream_info.id, 
+        stream_info.stream_name, 
+        stream_info.subscribe_topic
+    );
     auto comps = SQLiteRepository::query_components_by_stream(stream_info.id);
 
     for (auto& c : comps) 

@@ -88,12 +88,12 @@ bool SQLiteRepository::init_tables()
         << ");";
 
     // 5. 创建 device_streams 表 (组件流定义)
-    // 假设常量定义为: TABLE_DEVICE_STREAMS, FIELD_STREAM_ID, FIELD_STREAM_DEVICE_ID, FIELD_STREAM_NAME, FIELD_STREAM_IS_ACTIVE
     oss << SQL_CREATE_IF_NOT_EXISTS << " " << TABLE_DEVICE_STREAMS << "("
         << FIELD_STREAM_ID << " " << SQL_PRIMARY_KEY_AUTOINCREMENT << ","
         << FIELD_STREAM_DEVICE_ID << " INTEGER,"
         << FIELD_STREAM_NAME << " TEXT,"
         << FIELD_STREAM_IS_ACTIVE << " INTEGER DEFAULT 1,"
+        << FIELD_STREAM_SUBSCRIBE_TOPIC << " TEXT DEFAULT '',"  // 订阅 topic，空则默认 stream_id
         << "FOREIGN KEY(" << FIELD_STREAM_DEVICE_ID << ") REFERENCES " << TABLE_DEVICE << "(" << FIELD_DEVICE_ID << ") ON DELETE CASCADE"
         << ");";
 
@@ -232,7 +232,41 @@ DeviceDTO SQLiteRepository::query_device(int device_id)
 
 std::vector<StreamDTO> SQLiteRepository::query_streams_by_device(int device_id)
 {
-    return std::vector<StreamDTO>();
+    std::vector<StreamDTO> list;
+    MutexLockGuard lock(m_mutex);
+
+    std::ostringstream oss;
+    oss << "SELECT "
+        << FIELD_STREAM_ID << ", "
+        << FIELD_STREAM_DEVICE_ID << ", "
+        << FIELD_STREAM_NAME << ", "
+        << FIELD_STREAM_IS_ACTIVE << ", "
+        << FIELD_STREAM_SUBSCRIBE_TOPIC << " "
+        << "FROM " << TABLE_DEVICE_STREAMS << " "
+        << "WHERE " << FIELD_STREAM_DEVICE_ID << " = " << device_id << " "
+        << "AND " << FIELD_STREAM_IS_ACTIVE << " = 1;";
+    std::string sql = oss.str();
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK)
+    {
+        LOGERROR("Failed to prepare statement: %s", sqlite3_errmsg(m_db));
+        return list;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        StreamDTO stream;
+        stream.id = sqlite3_column_int(stmt, 0);
+        stream.device_id = sqlite3_column_int(stmt, 1);
+        stream.stream_name = column_text(stmt, 2);
+        stream.is_active = sqlite3_column_int(stmt, 3);
+        stream.subscribe_topic = column_text(stmt, 4);
+        list.push_back(stream);
+    }
+
+    sqlite3_finalize(stmt);
+    return list;
 }
 
 
@@ -289,5 +323,41 @@ std::vector<DataPointDTO> SQLiteRepository::query_points_by_device(int device_id
 
 std::vector<ComponectDTO> SQLiteRepository::query_components_by_stream(int stream_id)
 {
-    return std::vector<ComponectDTO>();
+    std::vector<ComponectDTO> list;
+    MutexLockGuard lock(m_mutex);
+
+    std::ostringstream oss;
+    oss << "SELECT "
+        << FIELD_COMP_ID << ", "
+        << FIELD_COMP_STREAM_ID << ", "
+        << FIELD_COMP_ORDER_INDEX << ", "
+        << FIELD_COMP_LIB_NAME << ", "
+        << FIELD_COMP_CONFIG << ", "
+        << FIELD_COMP_OUTPUT_NEXT << " "
+        << "FROM " << TABLE_STREAM_COMPONENTS << " "
+        << "WHERE " << FIELD_COMP_STREAM_ID << " = " << stream_id << " "
+        << "ORDER BY " << FIELD_COMP_ORDER_INDEX << " ASC;";
+    std::string sql = oss.str();
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK)
+    {
+        LOGERROR("Failed to prepare statement: %s", sqlite3_errmsg(m_db));
+        return list;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        ComponectDTO comp;
+        comp.id = sqlite3_column_int(stmt, 0);
+        comp.stream_id = sqlite3_column_int(stmt, 1);
+        comp.order_index = sqlite3_column_int(stmt, 2);
+        comp.lib_name = column_text(stmt, 3);
+        comp.comp_config = column_text(stmt, 4);
+        comp.output_to_next = sqlite3_column_int(stmt, 5);
+        list.push_back(comp);
+    }
+
+    sqlite3_finalize(stmt);
+    return list;
 }

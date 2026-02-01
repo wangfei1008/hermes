@@ -19,7 +19,14 @@
 class ExecutionStream
 {
 public:
-    ExecutionStream(int stream_id, const std::string& name);
+    /**
+     * 构造执行流
+     * @param stream_id 流 ID
+     * @param name 流名称
+     * @param subscribe_topic 订阅的 DataHub topic，默认为 stream_id 字符串；
+     *                        虚拟设备（转发/存储）可传 "0" 订阅结果数据
+     */
+    ExecutionStream(int stream_id, const std::string& name, const std::string& subscribe_topic = "");
     ~ExecutionStream();
 
     // 禁止拷贝
@@ -74,7 +81,8 @@ public:
 private:
     int m_id;
     std::string m_name;
-    uint64_t m_data_hub_sub_id
+    std::string m_subscribe_topic;      // 订阅的 topic
+    uint64_t m_data_hub_sub_id = 0;
 
     // 三个独立的子系统
     std::unique_ptr<ComponentPipeline> m_pipeline;

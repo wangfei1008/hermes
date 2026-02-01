@@ -3,20 +3,22 @@
 #include "data_models/data_hub.h"
 #include <string>
 
-ExecutionStream::ExecutionStream(int stream_id, const std::string& name)
+ExecutionStream::ExecutionStream(int stream_id, const std::string& name, const std::string& subscribe_topic)
     : m_id(stream_id)
     , m_name(name)
+    , m_subscribe_topic(subscribe_topic.empty() ? std::to_string(stream_id) : subscribe_topic)
 {
     // 创建三个子系统
     m_pipeline = std::make_unique<ComponentPipeline>(stream_id, name);
     m_msg_dispatcher = std::make_unique<MessageDispatcher>(stream_id, m_pipeline.get());
     m_data_processor = std::make_unique<DataProcessor>(stream_id, m_pipeline.get());
 
-    m_data_hub_sub_id = DataHub::instance().subscribe(std::to_string(m_id), [this](DataContext::Ptr data) {
+    // 订阅指定 topic（默认为 stream_id，虚拟设备可配置为 "0" 订阅结果数据）
+    m_data_hub_sub_id = DataHub::instance().subscribe(m_subscribe_topic, [this](DataContext::Ptr data) {
         this->push_data(data);
     });
 
-    LOGINFO("ExecutionStream[%d:%s] created", m_id, m_name.c_str());
+    LOGINFO("ExecutionStream[%d:%s] created, subscribing topic [%s]", m_id, m_name.c_str(), m_subscribe_topic.c_str());
 }
 
 ExecutionStream::~ExecutionStream()
