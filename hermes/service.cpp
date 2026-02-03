@@ -7,46 +7,48 @@
 
 void Service::init()
 {
-	//1¡¢Æô¶¯ÏûÏ¢×ÜÏß
+	//1ã€å¯åŠ¨æ¶ˆæ¯æ€»çº¿
 	MessageBus::instance().start();
 
-	//2¡¢Æô¶¯Êı¾İ×ÜÏß
+	//2ã€å¯åŠ¨æ•°æ®æ€»çº¿
 	DataHub::instance().create();
 
-	//3¡¢Æô¶¯Éè±¸´úÀí
-	setup_devices_proxy();
+	//3ã€å¯åŠ¨è®¾å¤‡ä»£ç†
+	if (!setup_devices_proxy()){
+		release();
+	}
 }
 
 void Service::release()
 {
-	//1¡¢Ğ¶ÔØÉè±¸´úÀí
+	//1ã€å¸è½½è®¾å¤‡ä»£ç†
 	teardown_devices_proxy();
 
-	//2¡¢Ğ¶ÔØÊı¾İ×ÜÏß
+	//2ã€å¸è½½æ•°æ®æ€»çº¿
 
-	//3¡¢Í£Ö¹ÏûÏ¢×ÜÏß
+	//3ã€åœæ­¢æ¶ˆæ¯æ€»çº¿
 	MessageBus::instance().stop();
 }
 
-void Service::setup_devices_proxy()
+bool Service::setup_devices_proxy()
 {
 	if (!SQLiteRepository::open("db/netsys_daq_hub.db")){
 		LOGERROR("Failed to open database: %s", SQLiteRepository::err_message().c_str());
-		return;
+		return false;
 	}
 
-	// 1. ´ÓÊı¾İ¿â¼ÓÔØÉè±¸ÅäÖÃ
-	SQLiteRepository::init_tables();
+	// 1. ä»æ•°æ®åº“åŠ è½½è®¾å¤‡é…ç½®
+	SQLiteRepository::init();
 	auto devices = SQLiteRepository::query_all_device();
 	LOGINFO("Loaded %zu devices from database", devices.size());
 
-	// 2. ¹¹½¨ËùÓĞÉè±¸´úÀí
+	// 2. æ„å»ºæ‰€æœ‰è®¾å¤‡ä»£ç†
 	DeviceBuilder builder;
 	for (auto& dev : devices) {
 		auto proxy = builder.build(dev);
 		if (proxy) {
 			m_proxies.push_back(proxy);
-			MessageBus::instance().subscribe(MESSAGE_PUBLICE_WRITE, proxy.get());//Ö»ÓĞ Proxy ¶©ÔÄ×ÜÏß
+			MessageBus::instance().subscribe(MESSAGE_PUBLICE_WRITE, proxy.get());//åªæœ‰ Proxy è®¢é˜…æ€»çº¿
 			LOGINFO("Device [%s] built successfully", dev.name.c_str());
 		}
 		else {
@@ -54,21 +56,22 @@ void Service::setup_devices_proxy()
 		}
 	}
 
-	// 3. Æô¶¯ËùÓĞÉè±¸
+	// 3. å¯åŠ¨æ‰€æœ‰è®¾å¤‡
 	for (auto& proxy : m_proxies) {
 		proxy->start();
 	}
 	LOGINFO("All devices started");
+	return true;
 }
 
 void Service::teardown_devices_proxy()
 {
 	for (auto& proxy : m_proxies)
 	{
-		// 1. Í£Ö¹´úÀí
+		// 1. åœæ­¢ä»£ç†
 		proxy->stop();
 
-		// 2. È¡Ïû¶©ÔÄ×ÜÏß
+		// 2. å–æ¶ˆè®¢é˜…æ€»çº¿
 		MessageBus::instance().unsubscribe(MESSAGE_PUBLICE_WRITE, proxy.get());
 	}
 	m_proxies.clear();

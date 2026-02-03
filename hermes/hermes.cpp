@@ -1,4 +1,4 @@
-﻿
+
 #include "hermes.h"
 #include "log/log.h"
 #include "service.h"
@@ -7,7 +7,7 @@ using namespace std;
 
 int main()
 {
-	LOG_INIT();
+	LOG_INIT("log.properties");
 	LOGINFO("****************************** setup ****************************");
 	Service s;
 	s.init();

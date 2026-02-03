@@ -16,6 +16,9 @@ public:
 private:
     PluginLoader() = default;
     ~PluginLoader() = default;
+    // 禁止拷贝和赋值（单例模式标准做法）
+    PluginLoader(const PluginLoader&) = delete;
+    PluginLoader& operator=(const PluginLoader&) = delete;
 private:
     std::map<std::string, ComponentLoader> m_libs;
 };
