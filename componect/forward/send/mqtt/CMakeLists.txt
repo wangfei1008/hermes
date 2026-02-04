@@ -1,4 +1,4 @@
-# 1. ËÑ¼¯Ô´ÎÄ¼ş
+# 1. æœé›†æºæ–‡ä»¶
 file(GLOB_RECURSE MQTT_SRC_FILES 
     "*.cpp"
     "*.c"
@@ -8,13 +8,38 @@ file(GLOB_RECURSE MQTT_HEADER_FILES
     "*.h"
 )
 
-# 2. Éú³É¾²Ì¬¿â (Ò²¿ÉÒÔÉèÎª SHARED)
+# 2. ç”Ÿæˆé™æ€åº“ (ä¹Ÿå¯ä»¥è®¾ä¸º SHARED)
 add_library(forward_send_mqtt SHARED 
             ${MQTT_SRC_FILES}
             ${MQTT_HEADER_FILES}
 )
 
-# Á´½Ó cf_base
+# é“¾æ¥ cf_base
 target_link_libraries(forward_send_mqtt PRIVATE cf_base)
-# Á´½Ó core_headers
+# é“¾æ¥ core_headers
 target_link_libraries(forward_send_mqtt PUBLIC CORE_HEADERS)
+
+# å¹³å°ç›¸å…³é…ç½®
+if (WIN32)
+    # ---------- include ----------
+    target_include_directories(forward_send_mqtt PRIVATE
+        "${SDK_DIR}/communicate/paho.mqtt.c-1.3.13/src"
+    )
+
+    # ---------- lib path ----------
+    target_link_directories(forward_send_mqtt PRIVATE
+        $<$<CONFIG:Debug>:${SDK_DIR}/communicate/paho.mqtt.c-1.3.13/build/src/Debug>
+        $<$<CONFIG:Release>:${SDK_DIR}/communicate/paho.mqtt.c-1.3.13/build/src/Release>
+    )
+
+    # ---------- link ----------
+    target_link_libraries(forward_send_mqtt PUBLIC
+        paho-mqtt3cs
+    )
+
+else()  # Linux
+    target_link_libraries(forward_send_mqtt PUBLIC
+        paho-mqtt3cs
+    )
+
+endif()
