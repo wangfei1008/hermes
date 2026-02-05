@@ -20,7 +20,7 @@
 class MessageDispatcher
 {
 public:
-    MessageDispatcher(int dispatcher_id, ComponentPipeline* pipeline);
+    MessageDispatcher(ComponentPipeline* pipeline);
     ~MessageDispatcher();
 
     // 禁止拷贝

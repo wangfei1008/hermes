@@ -3,13 +3,12 @@
 #ifndef DATA_CONTEXT_JSON_H
 #define DATA_CONTEXT_JSON_H
 
-#include "core/data_context.h"
-#include "common/data/variant.h"
+#include "data_context.h"
+#include "data/variant.h"
 
 #include <string>
 #include <vector>
 
-// DataDomain → 字符串（声明，定义在 data_context_json.cpp）
 std::string domain_to_string(DataDomain domain);
 
 // DataContext 的 JSON 序列化辅助类（实现位于 data_context_json.cpp）
@@ -27,12 +26,10 @@ public:
     };
 
     // 单帧序列化
-    static std::string to_json(const DataContext& ctx,
-                               const ConvertOptions& opt = {});
+    static std::string to_json(const DataContext& ctx, const ConvertOptions& opt = {});
 
     // 多帧（历史数据）序列化
-    static std::string to_json_array(const std::vector<DataContext::Ptr>& list,
-                                     const ConvertOptions& opt = {});
+    static std::string to_json_array(const std::vector<DataContext::Ptr>& list, const ConvertOptions& opt = {});
 
 private:
     // 时间工具
@@ -40,13 +37,9 @@ private:
     static std::string current_iso_time();
 
     // Variant 序列化（实现内部使用 json_write）
-    static void write_variant(struct json_write& w,
-                              const wf::Variant& v,
-                              const ConvertOptions& opt);
+    static void write_variant(struct json_write& w, const wf::Variant& v, const ConvertOptions& opt);
 
-    static void write_compressed_array(struct json_write& w,
-                                       const wf::Variant& v,
-                                       const ConvertOptions& opt);
+    static void write_compressed_array(struct json_write& w, const wf::Variant& v, const ConvertOptions& opt);
 };
 
 #endif // DATA_CONTEXT_JSON_H

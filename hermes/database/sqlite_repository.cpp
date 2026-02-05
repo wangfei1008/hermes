@@ -35,12 +35,12 @@ void SQLiteRepository::close()
 bool SQLiteRepository::init()
 {
     if (!init_tables()) {
-		LOGERROR("Failed to initialize database tables: %s", err_message().c_str());
+		LOGERROR("[SQLite]Failed to initialize database tables: %s", err_message().c_str());
         return false;
     }
 
     if (!init_default_data()) {
-		LOGERROR("Failed to initialzie database data: %s", err_message().c_str());
+		LOGERROR("[SQLite]Failed to initialzie database data: %s", err_message().c_str());
         return false;
     }
     return true;
@@ -155,7 +155,7 @@ bool SQLiteRepository::open(const std::string& db_path)
     int rc = sqlite3_open(m_db_path.c_str(), &m_db);
     if (rc != SQLITE_OK)
     {
-		LOGERROR("Can't open database: %s", sqlite3_errmsg(m_db));
+		LOGERROR("[SQLite]Can't open database: %s", sqlite3_errmsg(m_db));
         return false;
     }
  
@@ -203,7 +203,7 @@ bool SQLiteRepository::execute_query(const std::string& sql)
     char* z_err_msg = 0;
     int rc = sqlite3_exec(m_db, sql.c_str(), 0, 0, &z_err_msg);
     if (rc != SQLITE_OK) {
-		LOGERROR("SQL error: %s", z_err_msg);
+		LOGERROR("[SQLite]SQL error: %s", z_err_msg);
         sqlite3_free(z_err_msg);
         return false;
     }
@@ -233,7 +233,7 @@ std::vector<DeviceDTO> SQLiteRepository::query_all_device()
     // 预编译 SQL
     if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK) 
     {
-		LOGERROR("Failed to prepare statement: %s", sqlite3_errmsg(m_db));
+		LOGERROR("[SQLite]Failed to prepare statement: %s", sqlite3_errmsg(m_db));
         return list;
     }
 
@@ -328,7 +328,7 @@ DeviceDTO SQLiteRepository::query_device(int device_id)
         sqlite3_finalize(stmt);
     }
     else {
-        LOGERROR("Query device failed: %s", sqlite3_errmsg(m_db));
+        LOGERROR("[SQLite]Query device failed: %s", sqlite3_errmsg(m_db));
     }
     return device;
 }
@@ -421,7 +421,7 @@ int SQLiteRepository::query_device_stream(int device_id, const std::string& stre
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK)
     {
-        LOGERROR("Failed to prepare statement: %s", sqlite3_errmsg(m_db));
+        LOGERROR("[SQLite]Failed to prepare statement: %s", sqlite3_errmsg(m_db));
         return 0;
     }
 
@@ -497,7 +497,7 @@ int SQLiteRepository::query_stream_component(int stream_id, int order_index)
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK)
     {
-        LOGERROR("Failed to prepare statement: %s", sqlite3_errmsg(m_db));
+        LOGERROR("[SQLite]Failed to prepare statement: %s", sqlite3_errmsg(m_db));
         return 0;
     }
 
@@ -531,7 +531,7 @@ std::vector<StreamDTO> SQLiteRepository::query_streams_by_device(int device_id)
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK)
     {
-        LOGERROR("Failed to prepare statement: %s", sqlite3_errmsg(m_db));
+        LOGERROR("[SQLite]Failed to prepare statement: %s", sqlite3_errmsg(m_db));
         return list;
     }
 
@@ -576,7 +576,7 @@ std::vector<DataPointDTO> SQLiteRepository::query_points_by_device(int device_id
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK)
     {
-		LOGERROR("Failed to prepare statement: %s", sqlite3_errmsg(m_db));
+		LOGERROR("[SQLite]Failed to prepare statement: %s", sqlite3_errmsg(m_db));
         return list;
     }
 
@@ -623,7 +623,7 @@ std::vector<ComponectDTO> SQLiteRepository::query_components_by_stream(int strea
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK)
     {
-        LOGERROR("Failed to prepare statement: %s", sqlite3_errmsg(m_db));
+        LOGERROR("[SQLite]Failed to prepare statement: %s", sqlite3_errmsg(m_db));
         return list;
     }
 

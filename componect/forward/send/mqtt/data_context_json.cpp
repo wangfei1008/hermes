@@ -1,7 +1,7 @@
 // 实现 DataContext → JSON 的序列化，依赖 common/json/json_write。
 
-#include "componect/forward/send/mqtt/data_context_json.h"
-#include "common/json/json_write.h"
+#include "data_context_json.h"
+#include "json/json_write.h"
 
 #include <algorithm>
 #include <numeric>
@@ -23,8 +23,7 @@ std::string domain_to_string(DataDomain domain)
     }
 }
 
-std::string DataContextJsonConverter::to_json(const DataContext& ctx,
-                                              const ConvertOptions& opt)
+std::string DataContextJsonConverter::to_json(const DataContext& ctx, const ConvertOptions& opt)
 {
     json_write w;
 
@@ -42,8 +41,7 @@ std::string DataContextJsonConverter::to_json(const DataContext& ctx,
         w.set_value("stream_id",       static_cast<int>(ctx.header.stream_id));
         w.set_value("timestamp_ms",    static_cast<double>(ctx.header.timestamp_ms));
         w.set_value("frame_index",     static_cast<double>(ctx.header.frame_index));
-        w.set_value_string("timestamp_iso",
-                           ms_to_iso_string(ctx.header.timestamp_ms));
+        w.set_value_string("timestamp_iso", ms_to_iso_string(ctx.header.timestamp_ms));
 
         w.end_object();
     }
@@ -121,9 +119,7 @@ std::string DataContextJsonConverter::to_json(const DataContext& ctx,
     return std::string(w.data(), w.data_length());
 }
 
-std::string DataContextJsonConverter::to_json_array(
-    const std::vector<DataContext::Ptr>& list,
-    const ConvertOptions& opt)
+std::string DataContextJsonConverter::to_json_array(const std::vector<DataContext::Ptr>& list, const ConvertOptions& opt)
 {
     json_write w;
 
@@ -255,9 +251,7 @@ std::string DataContextJsonConverter::current_iso_time()
     return ms_to_iso_string(ms);
 }
 
-void DataContextJsonConverter::write_variant(json_write& w,
-                                             const wf::Variant& v,
-                                             const ConvertOptions& opt)
+void DataContextJsonConverter::write_variant(json_write& w, const wf::Variant& v, const ConvertOptions& opt)
 {
     using Kind = wf::Variant::Kind;
 
@@ -326,9 +320,7 @@ void DataContextJsonConverter::write_variant(json_write& w,
     (void)opt; // 当前未使用精度；如需，可扩展到 double 序列化
 }
 
-void DataContextJsonConverter::write_compressed_array(json_write& w,
-                                                      const wf::Variant& v,
-                                                      const ConvertOptions& opt)
+void DataContextJsonConverter::write_compressed_array(json_write& w, const wf::Variant& v, const ConvertOptions& opt)
 {
     using Kind = wf::Variant::Kind;
 

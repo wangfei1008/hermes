@@ -5,7 +5,7 @@
 DataHub::DataHub()
     : m_next_sub_id(1)
 {
-    LOGINFO("DataHub: Created");
+    LOGINFO("[DataHub] Created");
 }
 
 DataHub::~DataHub()
@@ -13,7 +13,7 @@ DataHub::~DataHub()
     std::unique_lock<std::shared_mutex> lock(m_sub_mutex);
     m_subscriptions.clear();
     m_topic_to_subs.clear();
-    LOGINFO("DataHub: Destroyed");
+    LOGINFO("[DataHub] Destroyed");
 }
 
 DataHub& DataHub::instance()
@@ -24,7 +24,7 @@ DataHub& DataHub::instance()
 
 void DataHub::create()
 {
-	LOGINFO("DataHub: Instance created");
+	LOGINFO("[DataHub] Instance created");
 }
 
 DataHub* DataHub::get()
@@ -35,7 +35,7 @@ DataHub* DataHub::get()
 void DataHub::publish(const std::string& topic, DataContext::Ptr pkg)
 {
     if (!pkg) {
-        LOGWARN("DataHub: Attempting to publish null data");
+        LOGWARN("[DataHub] Attempting to publish null data");
         return;
     }
 
@@ -47,7 +47,7 @@ void DataHub::publish(const std::string& topic, DataContext::Ptr pkg)
         m_latest_cache[device_uuid] = pkg;
     }
 
-    LOGDEBUG("DataHub: Published to topic [%s] from device [%s], frame [%lu]", topic.c_str(), device_uuid.c_str(), pkg->header.frame_index);
+    LOGDEBUG("[DataHub] Published to topic [%s] from device [%s], frame [%lu]", topic.c_str(), device_uuid.c_str(), pkg->header.frame_index);
 
     // 2. 通知订阅该 topic 的订阅者
     std::vector<DataCallback> callbacks;
@@ -84,13 +84,13 @@ void DataHub::publish(const std::string& topic, DataContext::Ptr pkg)
         try {
             cb(pkg);
         } catch (const std::exception& e) {
-            LOGERROR("DataHub: Subscriber callback exception: %s", e.what());
+            LOGERROR("[DataHub] Subscriber callback exception: %s", e.what());
         } catch (...) {
-            LOGERROR("DataHub: Subscriber callback unknown exception");
+            LOGERROR("[DataHub] Subscriber callback unknown exception");
         }
     }
 
-    LOGDEBUG("DataHub: Notified %zu subscribers for topic [%s]", callbacks.size(), topic.c_str());
+    LOGDEBUG("[DataHub] Notified %zu subscribers for topic [%s]", callbacks.size(), topic.c_str());
 }
 
 void DataHub::publish(DataContext::Ptr pkg)
@@ -102,7 +102,7 @@ void DataHub::publish(DataContext::Ptr pkg)
 uint64_t DataHub::subscribe(const std::string& topic, DataCallback cb)
 {
     if (!cb) {
-        LOGERROR("DataHub: Cannot subscribe with null callback");
+        LOGERROR("[DataHub] Cannot subscribe with null callback");
         return 0;
     }
 
@@ -114,7 +114,7 @@ uint64_t DataHub::subscribe(const std::string& topic, DataCallback cb)
     m_subscriptions[sub_id] = sub;
     m_topic_to_subs.emplace(topic, sub_id);
 
-    LOGINFO("DataHub: Subscription [%lu] added for topic [%s]", sub_id, topic.c_str());
+    LOGINFO("[DataHub] Subscription [%lu] added for topic [%s]", sub_id, topic.c_str());
     return sub_id;
 }
 
@@ -124,7 +124,7 @@ void DataHub::unsubscribe(uint64_t sub_id)
 
     auto it = m_subscriptions.find(sub_id);
     if (it == m_subscriptions.end()) {
-        LOGWARN("DataHub: Subscription [%lu] not found", sub_id);
+        LOGWARN("[DataHub] Subscription [%lu] not found", sub_id);
         return;
     }
 
@@ -143,7 +143,7 @@ void DataHub::unsubscribe(uint64_t sub_id)
 
     m_subscriptions.erase(it);
 
-    LOGINFO("DataHub: Subscription [%lu] removed from topic [%s]", sub_id, topic.c_str());
+    LOGINFO("[DataHub] Subscription [%lu] removed from topic", sub_id);
 }
 
 DataContext::Ptr DataHub::get_latest(const std::string& device_uuid)
@@ -152,11 +152,11 @@ DataContext::Ptr DataHub::get_latest(const std::string& device_uuid)
 
     auto it = m_latest_cache.find(device_uuid);
     if (it != m_latest_cache.end()) {
-        LOGDEBUG("DataHub: Retrieved latest data for device [%s]", device_uuid.c_str());
+        LOGDEBUG("[DataHub] Retrieved latest data for device [%s]", device_uuid.c_str());
         return it->second;
     }
 
-    LOGDEBUG("DataHub: No cached data for device [%s]", device_uuid.c_str());
+    LOGDEBUG("[DataHub] No cached data for device [%s]", device_uuid.c_str());
     return nullptr;
 }
 
@@ -164,7 +164,7 @@ void DataHub::set_global_attr(const std::string& key, const wf::Variant& val)
 {
     std::unique_lock<std::shared_mutex> lock(m_global_mutex);
     m_global_attrs[key] = val;
-    LOGDEBUG("DataHub: Global attribute [%s] set", key.c_str());
+    LOGDEBUG("[DataHub] Global attribute [%s] set", key.c_str());
 }
 
 wf::Variant DataHub::get_global_attr(const std::string& key)
@@ -176,6 +176,6 @@ wf::Variant DataHub::get_global_attr(const std::string& key)
         return it->second;
     }
 
-    LOGDEBUG("DataHub: Global attribute [%s] not found", key.c_str());
+    LOGDEBUG("[DataHub]  Global attribute [%s] not found", key.c_str());
     return wf::Variant();
 }

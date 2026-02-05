@@ -3,9 +3,8 @@
 #include "data_models/data_hub.h"
 #include <chrono>
 
-DataProcessor::DataProcessor(int processor_id, ComponentPipeline* pipeline)
-    : m_id(processor_id)
-    , m_pipeline(pipeline)
+DataProcessor::DataProcessor(ComponentPipeline* pipeline)
+    : m_pipeline(pipeline)
     , m_running(false)
     , m_queue(1024)
 {
@@ -13,32 +12,32 @@ DataProcessor::DataProcessor(int processor_id, ComponentPipeline* pipeline)
         throw std::invalid_argument("DataProcessor: pipeline cannot be null");
     }
 
-    LOGINFO("DataProcessor[%d] created", m_id);
+    LOGINFO("[DataProcessor][%s][%d] created", m_pipeline->device_name().c_str(), m_pipeline->id());
 }
 
 DataProcessor::~DataProcessor()
 {
     stop();
-    LOGINFO("DataProcessor[%d] destroyed", m_id);
+    LOGINFO("[DataProcessor][%s][%d] destroyed", m_pipeline->device_name().c_str(), m_pipeline->id());
 }
 
 void DataProcessor::start()
 {
     if (m_running) {
-        LOGWARN("DataProcessor[%d]: Already running", m_id);
+        LOGWARN("[DataProcessor][%s][%d] Already running", m_pipeline->device_name().c_str(), m_pipeline->id());
         return;
     }
 
     m_running = true;
     m_thread = std::thread(&DataProcessor::work_loop, this);
-    LOGINFO("DataProcessor[%d] started", m_id);
+    LOGINFO("[DataProcessor][%s][%d] started", m_pipeline->device_name().c_str(), m_pipeline->id());
 }
 
 void DataProcessor::stop()
 {
     if (!m_running) return;
 
-    LOGINFO("DataProcessor[%d] stopping...", m_id);
+    LOGINFO("[DataProcessor][%s][%d] stopping...", m_pipeline->device_name().c_str(), m_pipeline->id());
     m_running = false;
 
     // 唤醒线程
@@ -51,23 +50,23 @@ void DataProcessor::stop()
         m_thread.join();
     }
 
-    LOGINFO("DataProcessor[%d] stopped", m_id);
+    LOGINFO("[DataProcessor][%s][%d] stopped", m_pipeline->device_name().c_str(), m_pipeline->id());
 }
 
 void DataProcessor::push_data(DataContext::Ptr data)
 {
     if (!m_running) {
-        LOGWARN("DataProcessor[%d]: Rejecting data (not running)", m_id);
+        LOGWARN("[DataProcessor][%s][%d] Rejecting data (not running)", m_pipeline->device_name().c_str(), m_pipeline->id());
         return;
     }
 
     if (!data) {
-        LOGWARN("DataProcessor[%d]: Null data", m_id);
+        LOGWARN("[DataProcessor][%s][%d] Null data", m_pipeline->device_name().c_str(), m_pipeline->id());
         return;
     }
 
     if (!m_queue.enqueue(data)) {
-        LOGERROR("DataProcessor[%d]: Data queue full, dropping data", m_id);
+        LOGERROR("[DataProcessor][%s][%d] Data queue full, dropping data", m_pipeline->device_name().c_str(), m_pipeline->id());
         return;
     }
 
@@ -80,7 +79,7 @@ void DataProcessor::push_data(DataContext::Ptr data)
 
 void DataProcessor::work_loop()
 {
-    LOGINFO("DataProcessor[%d]: Work loop started", m_id);
+    LOGINFO("[DataProcessor][%s][%d] Work loop started", m_pipeline->device_name().c_str(), m_pipeline->id());
 
     while (m_running)
     {
@@ -114,19 +113,19 @@ void DataProcessor::work_loop()
                 if (success) {
                     // Pipeline 成功；不在此发布，由结果组件按 topic "0" 发布给总转发
                     DataHub::instance().publish(DATA_HUB_TOPIC_FORWARD, data);
-                    LOGDEBUG("DataProcessor[%d]: Pipeline executed successfully (cost: %ld us, frame: %lu)", m_id, duration, data->header.frame_index);
+                    LOGDEBUG("[DataProcessor][%s][%d] Pipeline executed successfully (cost: %ld us, frame: %lu)", m_pipeline->device_name().c_str(), m_pipeline->id(), duration, data->header.frame_index);
                 } else {
-                    LOGDEBUG("DataProcessor[%d]: Pipeline stopped (cost: %ld us, frame: %lu)", m_id, duration, data->header.frame_index);
+                    LOGDEBUG("[DataProcessor][%s][%d] Pipeline stopped (cost: %ld us, frame: %lu)", m_pipeline->device_name().c_str(), m_pipeline->id(), duration, data->header.frame_index);
                 }
 
             } catch (const std::exception& e) {
                 LOGERROR("DataProcessor[%d]: Pipeline execution failed: %s",
-                         m_id, e.what());
+                    m_pipeline->device_name().c_str(), m_pipeline->id(), e.what());
             } catch (...) {
-                LOGERROR("DataProcessor[%d]: Pipeline execution failed (unknown error)",                         m_id);
+                LOGERROR("DataProcessor[%d]: Pipeline execution failed (unknown error)", m_pipeline->device_name().c_str(), m_pipeline->id());
             }
         }
     }
 
-    LOGINFO("DataProcessor[%d]: Work loop exited", m_id);
+    LOGINFO("[DataProcessor][%s][%d] Work loop exited", m_pipeline->device_name().c_str(), m_pipeline->id());
 }

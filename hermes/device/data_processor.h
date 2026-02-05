@@ -20,7 +20,7 @@
 class DataProcessor
 {
 public:
-    DataProcessor(int processor_id, ComponentPipeline* pipeline);
+    DataProcessor(ComponentPipeline* pipeline);
     ~DataProcessor();
 
     // 禁止拷贝
@@ -49,7 +49,6 @@ private:
     void work_loop();
 
 private:
-    int m_id;
     ComponentPipeline* m_pipeline;
     
     std::atomic<bool> m_running;

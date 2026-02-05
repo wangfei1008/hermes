@@ -14,7 +14,42 @@
 #include <log4cplus/loggingmacros.h>
 #include <log4cplus/initializer.h>
 
-#define LOG_LOG4C 0
+#define LOG_LOG4C 1
+
+#if LOG_LOG4C
+
+static std::atomic<bool> g_log_init{ false };
+static std::atomic<bool> g_log_shutdown{ false };
+
+inline void SafeLogInit(const char* path)
+{
+    bool expected = false;
+    if (g_log_init.compare_exchange_strong(expected, true))
+    {
+        log4cplus_file_configure(reinterpret_cast<const log4cplus_char_t*>(path));
+    }
+}
+
+inline void SafeShutdown()
+{
+    bool expected = false;
+    if (g_log_shutdown.compare_exchange_strong(expected, true))
+    {
+        log4cplus_shutdown();
+    }
+}
+
+// 初始化宏：建议在 main 函数第一行调用
+#define LOG_INIT(path)      SafeLogInit(path);
+#define LOG_SHUTDOWN()      SafeShutdown();
+#define LOGDEBUG(...)		log4cplus_logger_log(__FUNCTION__, log4cplus::DEBUG_LOG_LEVEL, (const log4cplus_char_t *)__VA_ARGS__)
+#define LOGERROR(...)		log4cplus_logger_log(__FUNCTION__, log4cplus::ERROR_LOG_LEVEL, (const log4cplus_char_t *)__VA_ARGS__)
+#define LOGFATAL(...)		log4cplus_logger_log(__FUNCTION__, log4cplus::FATAL_LOG_LEVEL,(const log4cplus_char_t *)__VA_ARGS__)
+#define LOGINFO(...)		log4cplus_logger_log(__FUNCTION__, log4cplus::INFO_LOG_LEVEL, (const log4cplus_char_t *)__VA_ARGS__)
+#define LOGWARN(...)		log4cplus_logger_log(__FUNCTION__, log4cplus::WARN_LOG_LEVEL, (const log4cplus_char_t *)__VA_ARGS__)
+#define LOGTRACE(...)		log4cplus_logger_log(__FUNCTION__, log4cplus::TRACE_LOG_LEVEL,(const log4cplus_char_t *)__VA_ARGS__)
+
+#else
 
 class LoggerManager {
 public:
@@ -57,7 +92,8 @@ private:
     {
         if (config_path && strlen(config_path) > 0) {
             log4cplus::PropertyConfigurator::doConfigure(LOG4CPLUS_TEXT(config_path));
-        } else {
+        }
+        else {
             // 如果没提供配置文件，默认使用控制台基础配置，防止崩溃
             log4cplus::BasicConfigurator::doConfigure();
         }
@@ -76,17 +112,6 @@ private:
     std::atomic<bool> m_is_shutdown;
 };
 
-void InitialLog(const char* path);
-void ReleaseLog();
-
-#if LOG_LOG4C
-#define LOGDEBUG(...)		log4cplus_logger_log(NULL, log4cplus::DEBUG_LOG_LEVEL, (const log4cplus_char_t *)__VA_ARGS__)
-#define LOGERROR(...)		log4cplus_logger_log(NULL, log4cplus::ERROR_LOG_LEVEL, (const log4cplus_char_t *)__VA_ARGS__)
-#define LOGFATAL(...)		log4cplus_logger_log(NULL, log4cplus::FATAL_LOG_LEVEL,(const log4cplus_char_t *)__VA_ARGS__)
-#define LOGINFO(...)		log4cplus_logger_log(NULL, log4cplus::INFO_LOG_LEVEL, (const log4cplus_char_t *)__VA_ARGS__)
-#define LOGWARN(...)		log4cplus_logger_log(NULL, log4cplus::WARN_LOG_LEVEL, (const log4cplus_char_t *)__VA_ARGS__)
-#define LOGTRACE(...)		log4cplus_logger_log(NULL, log4cplus::TRACE_LOG_LEVEL,(const log4cplus_char_t *)__VA_ARGS__)
-#else
 // 初始化宏：建议在 main 函数第一行调用
 #define LOG_INIT(path) LoggerManager::instance(path)
 #define LOG_SHUTDOWN() LoggerManager::instance().destroy()

@@ -1,41 +1,40 @@
 #include "message_dispatcher.h"
 #include "log/log.h"
 
-MessageDispatcher::MessageDispatcher(int dispatcher_id, ComponentPipeline* pipeline)
-    : m_id(dispatcher_id)
-    , m_pipeline(pipeline)
+MessageDispatcher::MessageDispatcher(ComponentPipeline* pipeline)
+    : m_pipeline(pipeline)
     , m_running(false)
     , m_queue(1024)
 {
     if (!m_pipeline) {
-        throw std::invalid_argument("MessageDispatcher: pipeline cannot be null");
+        throw std::invalid_argument("[MessageDispatcher] pipeline cannot be null");
     }
-    LOGINFO("MessageDispatcher[%d] created", m_id);
+    LOGINFO("[MessageDispatcher][%s][%d] created", m_pipeline->device_name().c_str(), m_pipeline->id());
 }
 
 MessageDispatcher::~MessageDispatcher()
 {
     stop();
-    LOGINFO("MessageDispatcher[%d] destroyed", m_id);
+    LOGINFO("[MessageDispatcher][%s][%d] destroyed", m_pipeline->device_name().c_str(), m_pipeline->id());
 }
 
 void MessageDispatcher::start()
 {
     if (m_running) {
-        LOGWARN("MessageDispatcher[%d]: Already running", m_id);
+        LOGWARN("[MessageDispatcher][%s][%d] Already running", m_pipeline->device_name().c_str(), m_pipeline->id());
         return;
     }
 
     m_running = true;
     m_thread = std::thread(&MessageDispatcher::message_loop, this);
-    LOGINFO("MessageDispatcher[%d] started", m_id);
+    LOGINFO("[MessageDispatcher][%s][%d] started", m_pipeline->device_name().c_str(), m_pipeline->id());
 }
 
 void MessageDispatcher::stop()
 {
     if (!m_running) return;
 
-    LOGINFO("MessageDispatcher[%d] stopping...", m_id);
+    LOGINFO("[MessageDispatcher][%s][%d] stopping...", m_pipeline->device_name().c_str(), m_pipeline->id());
     m_running = false;
 
     // 唤醒线程
@@ -48,23 +47,23 @@ void MessageDispatcher::stop()
         m_thread.join();
     }
 
-    LOGINFO("MessageDispatcher[%d] stopped", m_id);
+    LOGINFO("[MessageDispatcher][%s][%d] stopped", m_pipeline->device_name().c_str(), m_pipeline->id());
 }
 
 void MessageDispatcher::push_message(const std::shared_ptr<MessageEnvelope>& msg)
 {
     if (!m_running) {
-        LOGWARN("MessageDispatcher[%d]: Rejecting message (not running)", m_id);
+        LOGWARN("[MessageDispatcher][%s][%d] Rejecting message (not running)", m_pipeline->device_name().c_str(), m_pipeline->id());
         return;
     }
 
     if (!msg) {
-        LOGWARN("MessageDispatcher[%d]: Null message", m_id);
+        LOGWARN("[MessageDispatcher][%s][%d] Null message", m_pipeline->device_name().c_str(), m_pipeline->id());
         return;
     }
 
     if (!m_queue.enqueue(msg)) {
-        LOGERROR("MessageDispatcher[%d]: Message queue full, dropping message", m_id);
+        LOGERROR("[MessageDispatcher][%s][%d] Message queue full, dropping message", m_pipeline->device_name().c_str(), m_pipeline->id());
         return;
     }
 
@@ -77,7 +76,7 @@ void MessageDispatcher::push_message(const std::shared_ptr<MessageEnvelope>& msg
 
 void MessageDispatcher::message_loop()
 {
-    LOGINFO("MessageDispatcher[%d]: Message loop started", m_id);
+    LOGINFO("[MessageDispatcher][%s][%d] Message loop started", m_pipeline->device_name().c_str(), m_pipeline->id());
 
     while (m_running)
     {
@@ -103,14 +102,14 @@ void MessageDispatcher::message_loop()
                 // 分发到 Pipeline
                 m_pipeline->dispatch_message(msg->type(), msg->payload().body());
                 
-                LOGDEBUG("MessageDispatcher[%d]: Dispatched message type=%d", m_id, msg->type());
+                LOGDEBUG("[MessageDispatcher][%s][%d] Dispatched message type=%d", m_pipeline->device_name().c_str(), m_pipeline->id(), msg->type());
             } catch (const std::exception& e) {
-                LOGERROR("MessageDispatcher[%d]: Failed to dispatch message: %s", m_id, e.what());
+                LOGERROR("[MessageDispatcher][%s][%d] Failed to dispatch message: %s", m_pipeline->device_name().c_str(), m_pipeline->id(), e.what());
             } catch (...) {
-                LOGERROR("MessageDispatcher[%d]: Failed to dispatch message (unknown error)", m_id);
+                LOGERROR("[MessageDispatcher][%s][%d] Failed to dispatch message (unknown error)", m_pipeline->device_name().c_str(), m_pipeline->id());
             }
         }
     }
 
-    LOGINFO("MessageDispatcher[%d]: Message loop exited", m_id);
+    LOGINFO("[MessageDispatcher][%s][%d] Message loop exited", m_pipeline->device_name().c_str(), m_pipeline->id());
 }

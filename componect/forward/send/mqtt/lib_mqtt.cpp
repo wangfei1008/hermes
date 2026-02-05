@@ -1,6 +1,6 @@
 #include "lib_mqtt.h"
-#include <log4cplus/appender.h>
 #include "log/log.h"
+#include "data_context_json.h"
 #include "component_export.h"
 #include <iostream>
 
@@ -9,7 +9,7 @@ extern "C"  COM_EXPORT bool release_lib(IComponent** new_component);
 
 bool create_lib(IComponent** new_component)
 {
-    LOGINFO("LibMqtt create component_interface");
+    LOGINFO("[libmqtt] create component_interface");
     IComponent* lib = new LibMqtt();
     *new_component = (IComponent*)lib;
     return true;
@@ -17,7 +17,7 @@ bool create_lib(IComponent** new_component)
 
 bool release_lib(IComponent** new_component)
 {
-    LOGINFO("LibMqtt release component_interface");
+    LOGINFO("[libmqtt] release component_interface");
     LibMqtt* component = (LibMqtt*)*new_component;
     delete component;
     component = NULL;
@@ -38,21 +38,21 @@ LibMqtt::~LibMqtt()
 bool LibMqtt::init(const DeviceContext& ctx, IDataHub* hub, const std::string& config)
 {
     if(hub == nullptr){
-        LOGERROR("libmqtt init data hub is nullptr");
+        LOGERROR("[libmqtt][%s][%d] init data hub is nullptr", ctx.device_name.c_str(), ctx.stream_id);
         return false;
     }
     if(config.empty()){
-        LOGERROR("libmqtt init config is empty");
+        LOGERROR("[libmqtt][%s][%d] init config is empty", ctx.device_name.c_str(), ctx.stream_id);
         return false;
     }
-    LOGINFO("libmqtt init device name = %s, device id = %d, stream id = %d", ctx.device_name.c_str(), ctx.device_uuid, ctx.stream_id);
+    LOGINFO("[libmqtt][%s][%d]init start", ctx.device_name.c_str(), ctx.stream_id);
     m_device_context = ctx;
     m_data_hub = hub;
 
 	// 1. 解析配置
 	m_config = Config::load_from_json(config);
     if (!m_config) {
-		LOGERROR("LibMqtt init failed: invalid configuration");
+		LOGERROR("[libmqtt][%s][%d] init failed: invalid configuration", ctx.device_name.c_str(), ctx.stream_id);
         return false; // 配置加载失败
     }
 
@@ -62,7 +62,7 @@ bool LibMqtt::init(const DeviceContext& ctx, IDataHub* hub, const std::string& c
 	if (m_config->tls) {
 		m_client.set_tls(m_config->ca_crt, m_config->cln_crt, m_config->cln_key);
 	}
-    LOGINFO("LibMqtt initialized success");
+    LOGINFO("[libmqtt][%s][%d] initialized success", ctx.device_name.c_str(), ctx.stream_id);
     return true;
 
 }
@@ -81,22 +81,22 @@ void LibMqtt::start()
 
 	// 3. 连接 MQTT 服务器
 	if (MQTTCLIENT_SUCCESS != m_client.connect()) {
-		LOGERROR("LibMqtt start failed: cannot connect to MQTT broker");
+		LOGERROR("[libmqtt][%s][%d] start failed: cannot connect to MQTT broker", m_device_context.device_name.c_str(), m_device_context.stream_id);
         stop();
 		return;
 	}
 
-    LOGINFO("LibMqtt forward thread started");
+    LOGINFO("[libmqtt][%s][%d] forward thread started", m_device_context.device_name.c_str(), m_device_context.stream_id);
 }
 
 void LibMqtt::pause()
 {
-    LOGINFO("libmqtt start");
+    LOGINFO("[libmqtt][%s][%d] start", m_device_context.device_name.c_str(), m_device_context.stream_id);
 }
 
 void LibMqtt::resume()
 {
-    LOGINFO("libmqtt start");
+    LOGINFO("[libmqtt][%s][%d] resume", m_device_context.device_name.c_str(), m_device_context.stream_id);
 }
 
 void LibMqtt::stop()
@@ -110,17 +110,17 @@ void LibMqtt::stop()
     if (m_data_hub && m_sub_id > 0) {
         m_data_hub->unsubscribe(m_sub_id);
     }
-    LOGINFO("LibMqtt stopped");
+    LOGINFO("[libmqtt][%s][%d] stopped", m_device_context.device_name.c_str(), m_device_context.stream_id);
 }
 
 void LibMqtt::on_message(int type, const std::string& msg)
 {
-    LOGINFO("libmqtt on_message type=%d, msg=%s", type, msg.c_str());
+    LOGINFO("[libmqtt][%s][%d] on_message type=%d, msg=%s", m_device_context.device_name.c_str(), m_device_context.stream_id, type, msg.c_str());
  }
 
 bool LibMqtt::process(DataContext::Ptr& pkg)
 {
-    LOGINFO("libmqtt process data frame_index=%lu", pkg->header.frame_index);
+    LOGINFO("[libmqtt][%s][%d] process data frame_index=%lu", m_device_context.device_name.c_str(), m_device_context.stream_id, pkg->header.frame_index);
     return true;
 }
 
@@ -131,7 +131,7 @@ void LibMqtt::worker_loop()
         // 2. 从无锁队列取出数据包
         if (m_queue.try_dequeue(pkg)) {
             // 执行 MQTT 发送
-            std::string json_data;// = serialize(pkg);
+            std::string json_data = DataContextJsonConverter::to_json(*pkg.get());
             m_client.publish(m_config->topic, json_data);
 
             // 3. 将该数据通过流 ID 发布至总线

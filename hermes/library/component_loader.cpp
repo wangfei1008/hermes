@@ -73,14 +73,14 @@ LibraryLoader* ComponentLoader::load(const std::string& libname)
 		qLib = new LibraryLoader(libname);
 		if (!qLib->load())
 		{
-			LOGERROR("%s Dynamic link library loaded fail", libname.c_str());
+			LOGERROR("[Library]%s Dynamic link library loaded fail", libname.c_str());
 		}
 		else
-			LOGINFO("%s dynamic link library loaded successfully", libname.c_str());
+			LOGINFO("[Library]%s dynamic link library loaded successfully", libname.c_str());
 	}
 	else
 	{
-		LOGERROR("%s unsupported platform",libname.c_str());
+		LOGERROR("[Library]%s unsupported platform",libname.c_str());
 	}
 	return qLib;
 }
@@ -89,11 +89,11 @@ IComponent* ComponentLoader::init_component()
 {
 	IComponent* p = NULL;
 	if (m_create_func) {
-		LOGINFO("%s create_lib function parsing successful", m_plib->file_name().c_str());
+		LOGINFO("[Library]%s create_lib function parsing successful", m_plib->file_name().c_str());
 		m_create_func(&p);
 	}
 	else {
-		LOGERROR("%s create_lib function parsing fail", m_plib->file_name().c_str());
+		LOGERROR("[Library]%s create_lib function parsing fail", m_plib->file_name().c_str());
 	}
 
 	return p;
@@ -102,12 +102,12 @@ IComponent* ComponentLoader::init_component()
 bool ComponentLoader::release_component(IComponent* pcomponent)
 {
 	if (m_release_func) {
-		LOGINFO("%s release_lib function parsing successful", m_plib->file_name().c_str());
+		LOGINFO("[Library]%s release_lib function parsing successful", m_plib->file_name().c_str());
 		return m_release_func(&pcomponent);
 
 	}
 	else {
-		LOGERROR("%s release_lib function parsing fail", m_plib->file_name().c_str());
+		LOGERROR("[Library]%s release_lib function parsing fail", m_plib->file_name().c_str());
 	}
 	return false;
 }

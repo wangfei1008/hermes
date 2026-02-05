@@ -2,12 +2,13 @@
 #include "library/plugin_loader.h"
 #include "log/log.h"
 
-ComponentPipeline::ComponentPipeline(int pipeline_id, const std::string& name)
-    : m_id(pipeline_id)
+ComponentPipeline::ComponentPipeline(const std::string& device_name, int pipeline_id, const std::string& name)
+    : m_device_name(device_name)
+    , m_id(pipeline_id)
     , m_name(name)
     , m_started(false)
 {
-    LOGINFO("ComponentPipeline[%d:%s] created", m_id, m_name.c_str());
+    LOGINFO("[ComponentPipeline][%s][%d] stream = %s created", m_device_name.c_str(), m_id, m_name.c_str());
 }
 
 ComponentPipeline::~ComponentPipeline()
@@ -16,47 +17,47 @@ ComponentPipeline::~ComponentPipeline()
         stop();
     }
     cleanup_components();
-    LOGINFO("ComponentPipeline[%d:%s] destroyed", m_id, m_name.c_str());
+    LOGINFO("[ComponentPipeline][%s][%d] stream = %s destroyed", m_device_name.c_str(), m_id, m_name.c_str());
 }
 
 void ComponentPipeline::add_component(IComponent* comp, const std::string& lib_name)
 {
     if (m_started) {
-        LOGERROR("ComponentPipeline[%d]: Cannot add component after start()", m_id);
+        LOGERROR("[ComponentPipeline][%s][%d] Cannot add component after start()", m_device_name.c_str(), m_id);
         return;
     }
 
     if (!comp) {
-        LOGERROR("ComponentPipeline[%d]: Null component pointer", m_id);
+        LOGERROR("[ComponentPipeline][%s][%d] Null component pointer", m_device_name.c_str(), m_id);
         return;
     }
 
     m_components.push_back({comp, lib_name});
-    LOGINFO("ComponentPipeline[%d]: Component from [%s] added (total: %d)", m_id, lib_name.c_str(), m_components.size());
+    LOGINFO("[ComponentPipeline][%s][%d] Component from %s added (total: %d)", m_device_name.c_str(), m_id, lib_name.c_str(), m_components.size());
 }
 
 bool ComponentPipeline::start()
 {
     if (m_started) {
-        LOGWARN("ComponentPipeline[%d]: Already started", m_id);
+        LOGWARN("[ComponentPipeline][%s][%d] Already started", m_device_name.c_str(), m_id);
         return false;
     }
 
     for (auto& info : m_components) {
         try {
             info.component->start();
-            LOGINFO("ComponentPipeline[%d]: Component [%s] started", m_id, info.lib_name.c_str());
+            LOGINFO("[ComponentPipeline][%s][%d] Component %s started", m_device_name.c_str(), m_id, info.lib_name.c_str());
         } catch (const std::exception& e) {
-            LOGERROR("ComponentPipeline[%d]: Failed to start component [%s]: %s", m_id, info.lib_name.c_str(), e.what());
+            LOGERROR("[ComponentPipeline][%s][%d] Failed to start component %s: %s", m_device_name.c_str(), m_id, info.lib_name.c_str(), e.what());
             return false;
         } catch (...) {
-            LOGERROR("ComponentPipeline[%d]: Failed to start component [%s] (unknown error)", m_id, info.lib_name.c_str());
+            LOGERROR("[ComponentPipeline][%s][%d] Failed to start component %s (unknown error)", m_device_name.c_str(), m_id, info.lib_name.c_str());
             return false;
         }
     }
 
     m_started = true;
-    LOGINFO("ComponentPipeline[%d:%s] started with %zu components", m_id, m_name.c_str(), m_components.size());
+    LOGINFO("[ComponentPipeline][%s][%d] stream = %s started with %zu components", m_device_name.c_str(), m_id, m_name.c_str(), m_components.size());
     return true;
 }
 
@@ -68,10 +69,10 @@ void ComponentPipeline::pause()
         try {
             info.component->pause();
         } catch (const std::exception& e) {
-            LOGERROR("ComponentPipeline[%d]: Failed to pause component [%s]: %s", m_id, info.lib_name.c_str(), e.what());
+            LOGERROR("[ComponentPipeline][%s][%d] Failed to pause component %s: %s", m_device_name.c_str(), m_id, info.lib_name.c_str(), e.what());
         }
     }
-    LOGINFO("ComponentPipeline[%d] paused", m_id);
+    LOGINFO("[ComponentPipeline][%s][%d] paused", m_device_name.c_str(), m_id);
 }
 
 void ComponentPipeline::resume()
@@ -82,10 +83,10 @@ void ComponentPipeline::resume()
         try {
             info.component->resume();
         } catch (const std::exception& e) {
-            LOGERROR("ComponentPipeline[%d]: Failed to resume component [%s]: %s", m_id, info.lib_name.c_str(), e.what());
+            LOGERROR("[ComponentPipeline][%s][%d] Failed to resume component %s: %s", m_device_name.c_str(), m_id, info.lib_name.c_str(), e.what());
         }
     }
-    LOGINFO("ComponentPipeline[%d] resumed", m_id);
+    LOGINFO("[ComponentPipeline][%s][%d] resumed", m_device_name.c_str(), m_id);
 }
 
 void ComponentPipeline::stop()
@@ -95,14 +96,14 @@ void ComponentPipeline::stop()
     for (auto& info : m_components) {
         try {
             info.component->stop();
-            LOGINFO("ComponentPipeline[%d]: Component [%s] stopped", m_id, info.lib_name.c_str());
+            LOGINFO("[ComponentPipeline][%s][%d] ComponentPipeline[%d]: Component %s stopped", m_device_name.c_str(), m_id, info.lib_name.c_str());
         } catch (const std::exception& e) {
-            LOGERROR("ComponentPipeline[%d]: Failed to stop component [%s]: %s",  m_id, info.lib_name.c_str(), e.what());
+            LOGERROR("[ComponentPipeline][%s][%d] Failed to stop component %s: %s", m_device_name.c_str(),  m_id, info.lib_name.c_str(), e.what());
         }
     }
 
     m_started = false;
-    LOGINFO("ComponentPipeline[%d] stopped", m_id);
+    LOGINFO("[ComponentPipeline][%s][%d] stopped", m_device_name.c_str(), m_id);
 }
 
 bool ComponentPipeline::execute(DataContext::Ptr& data)
@@ -118,14 +119,14 @@ bool ComponentPipeline::execute(DataContext::Ptr& data)
             bool continue_pipeline = info.component->process(data);
             
             if (!continue_pipeline) {
-                LOGDEBUG("ComponentPipeline[%d]: Component [%s] stopped pipeline", m_id, info.lib_name.c_str());
+                LOGDEBUG("[ComponentPipeline][%s][%d] Component %s stopped pipeline", m_device_name.c_str(), m_id, info.lib_name.c_str());
                 return false;
             }
         } catch (const std::exception& e) {
-            LOGERROR("ComponentPipeline[%d]: Component [%s] process failed: %s", m_id, info.lib_name.c_str(), e.what());
+            LOGERROR("[ComponentPipeline][%s][%d] Component %s process failed: %s", m_device_name.c_str(), m_id, info.lib_name.c_str(), e.what());
             return false;
         } catch (...) {
-            LOGERROR("ComponentPipeline[%d]: Component [%s] process failed (unknown error)", m_id, info.lib_name.c_str());
+            LOGERROR("[ComponentPipeline][%s][%d] Component %s process failed (unknown error)", m_device_name.c_str(), m_id, info.lib_name.c_str());
             return false;
         }
     }
@@ -140,9 +141,9 @@ void ComponentPipeline::dispatch_message(int type, const std::string& msg)
         try {
             info.component->on_message(type, msg);
         } catch (const std::exception& e) {
-            LOGERROR("ComponentPipeline[%d]: Component [%s] on_message failed: %s", m_id, info.lib_name.c_str(), e.what());
+            LOGERROR("[ComponentPipeline][%s][%d] Component %s on_message failed: %s", m_device_name.c_str(), m_id, info.lib_name.c_str(), e.what());
         } catch (...) {
-            LOGERROR("ComponentPipeline[%d]: Component [%s] on_message failed (unknown)", m_id, info.lib_name.c_str());
+            LOGERROR("[ComponentPipeline][%s][%d] Component %s on_message failed (unknown)", m_device_name.c_str(), m_id, info.lib_name.c_str());
         }
     }
 }
@@ -160,9 +161,9 @@ void ComponentPipeline::cleanup_components()
         {
             try {
                 PluginLoader::instance().release(info.lib_name, info.component);
-                LOGINFO("ComponentPipeline[%d]: Component [%s] released",  m_id, info.lib_name.c_str());
+                LOGINFO("[ComponentPipeline][%s][%d] Component %s released", m_device_name.c_str(),  m_id, info.lib_name.c_str());
             } catch (const std::exception& e) {
-                LOGERROR("ComponentPipeline[%d]: Failed to release component [%s]: %s", m_id, info.lib_name.c_str(), e.what());
+                LOGERROR("[ComponentPipeline][%s][%d] Failed to release component %s: %s", m_device_name.c_str(), m_id, info.lib_name.c_str(), e.what());
             }
             info.component = nullptr;
         }

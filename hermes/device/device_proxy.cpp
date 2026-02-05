@@ -30,7 +30,7 @@ void DeviceProxy::add_stream(std::unique_ptr<ExecutionStream> stream)
 //2. 设备启动与停止
 void DeviceProxy::start() 
 {
-    LOGINFO("Starting DeviceProxy: %s", m_name.c_str());
+    LOGINFO("[DeviceProxy][%s] Starting...", m_name.c_str());
     for (auto& stream : m_streams)
     {
         stream->start();
@@ -39,7 +39,7 @@ void DeviceProxy::start()
 
 void DeviceProxy::stop()
 {
-    LOGINFO("Stopping DeviceProxy: %s", m_name.c_str());
+    LOGINFO("[DeviceProxy][%s] Stopping...", m_name.c_str());
     for (auto& stream : m_streams) 
     {
         stream->stop();

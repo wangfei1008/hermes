@@ -16,7 +16,7 @@
 class ComponentPipeline
 {
 public:
-    ComponentPipeline(int pipeline_id, const std::string& name);
+    ComponentPipeline(const std::string& device_name, int pipeline_id, const std::string& name);
     ~ComponentPipeline();
 
     // 禁止拷贝
@@ -69,6 +69,7 @@ public:
     const std::string& name() const { return m_name; }
     size_t component_count() const;
     bool is_started() const { return m_started; }
+    const std::string& device_name() const { return m_device_name; }
 
 private:
     void cleanup_components();
@@ -78,7 +79,7 @@ private:
         IComponent* component;
         std::string lib_name;
     };
-
+    std::string m_device_name;
     int m_id;
     std::string m_name;
     bool m_started;

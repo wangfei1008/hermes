@@ -21,12 +21,13 @@ class ExecutionStream
 public:
     /**
      * 构造执行流
+     * @param device_name 流 ID
      * @param stream_id 流 ID
      * @param name 流名称
      * @param subscribe_topic 订阅的 DataHub topic，默认为 stream_id 字符串；
      *                        虚拟设备（转发/存储）可传 "0" 订阅结果数据
      */
-    ExecutionStream(int stream_id, const std::string& name, const std::string& subscribe_topic = "");
+    ExecutionStream(const std::string& device_name, int stream_id, const std::string& name, const std::string& subscribe_topic = "");
     ~ExecutionStream();
 
     // 禁止拷贝
@@ -79,6 +80,7 @@ public:
     size_t component_count() const;
 
 private:
+    std::string m_device_name;
     int m_id;
     std::string m_name;
     std::string m_subscribe_topic;      // 订阅的 topic

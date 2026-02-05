@@ -21,7 +21,7 @@ void MessageBus::start()
     if (m_running) return;
     m_running = true;
     m_worker_thread = std::thread(&MessageBus::work_thread_func, this);
-    LOGINFO("Message Bus Started.");
+    LOGINFO("[Message Bus] Started.");
 }
 
 void MessageBus::stop()
@@ -110,13 +110,13 @@ void MessageBus::work_thread_func()
                         observer->on_message(msg);
                     }
                     catch (...) {
-                        LOGERROR("Exception in observer: %s", observer->name().c_str());
+                        LOGERROR("[Message Bus]Exception in observer: %s", observer->name().c_str());
                     }
                 }
             }
             else {
                 // 没订阅者的消息，可以选择打印警告
-                LOGWARN("No subscribers for message type: %d", msg->type());
+                LOGWARN("[Message Bus]No subscribers for message type: %d", msg->type());
             }
         }
         else {

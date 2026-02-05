@@ -9,7 +9,7 @@ std::shared_ptr<DeviceProxy> DeviceBuilder::build(const DeviceDTO& dev_info)
 {
     // 查询所有流
     auto streams = SQLiteRepository::query_streams_by_device(dev_info.id);
-    LOGINFO("DeviceBuilder: Building device [%s] with %d streams", dev_info.name.c_str(), streams.size());
+    LOGINFO("[DeviceBuilder][%s] Building with %d streams", dev_info.name.c_str(), streams.size());
     if (streams.size() > 0) {
         auto proxy = std::make_shared<DeviceProxy>(std::to_string(dev_info.id), dev_info.name);
         for (auto& s : streams)
@@ -19,7 +19,7 @@ std::shared_ptr<DeviceProxy> DeviceBuilder::build(const DeviceDTO& dev_info)
                 proxy->add_stream(std::move(stream));
             }
             else {
-				LOGERROR("DeviceBuilder: Failed to assemble stream[% s] for device[% s]", s.stream_name.c_str(), dev_info.name.c_str());
+				LOGERROR("[DeviceBuilder][%s] Failed to assemble stream[% s]", dev_info.name.c_str(), s.stream_name.c_str());
             }
         }
         return proxy;
@@ -36,6 +36,7 @@ std::unique_ptr<ExecutionStream> DeviceBuilder::assemble_stream(const DeviceDTO&
 
     // 传入 subscribe_topic：空则默认订阅 stream_id，虚拟设备配置为 "0" 订阅结果数据
     auto stream = std::make_unique<ExecutionStream>(
+        device_info.name,
         stream_info.id, 
         stream_info.stream_name, 
         stream_info.subscribe_topic
@@ -49,7 +50,7 @@ std::unique_ptr<ExecutionStream> DeviceBuilder::assemble_stream(const DeviceDTO&
             stream->add_component(comp, c.lib_name);
         }
         else {
-			LOGERROR("DeviceBuilder: Failed to create or init component [%s] for stream [%s] of device [%s]",c.lib_name.c_str(), stream_info.stream_name.c_str(), device_info.name.c_str());
+            LOGERROR("[DeviceBuilder][%s] Failed to create or init component [%s] for stream [%s]", device_info.name.c_str(), c.lib_name.c_str(), stream_info.stream_name.c_str());
         }
     }
     return stream;

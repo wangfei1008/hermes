@@ -18,7 +18,7 @@ bool LibraryLoader::load()
     if (m_file_name.empty())
     {
         m_error_str = "File name is empty";
-		LOGERROR("LibraryLoader load failed: %s", m_error_str.c_str());
+		LOGERROR("[Library]LibraryLoader load failed: %s", m_error_str.c_str());
         return false;
     }
 
@@ -28,7 +28,7 @@ bool LibraryLoader::load()
     m_handle = LoadLibraryA(full_path.c_str());
     if (!m_handle) {
         m_error_str = "Win32 Error Code: " + std::to_string(GetLastError());
-		LOGERROR("LibraryLoader load failed: %s, path= %s", m_error_str.c_str(), full_path.c_str());
+		LOGERROR("[Library]LibraryLoader load failed: %s, path= %s", m_error_str.c_str(), full_path.c_str());
     }
 #else
     int flags = RTLD_LAZY;
