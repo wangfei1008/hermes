@@ -99,6 +99,9 @@ std::shared_ptr<CommandParam> Config::parse_command(const std::string& json, int
     cmd->address_start = reader.get_value<int>("address_start");
     cmd->read_length = reader.get_value<int>("read_length");
     cmd->bit_step_size = reader.get_value<int>("bit_step_size");
+    cmd->description = reader.get_value<std::string>("description");
+	cmd->value_type = reader.get_value<std::string>("value_type");
+	cmd->byte_order = reader.get_value<std::string>("byte_order");
     cmd->buffer = reader.get_value<std::string>("buffer");
     cmd->config = json;
 

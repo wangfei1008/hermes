@@ -1,28 +1,29 @@
 ﻿#pragma once
+
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
 #include <type_traits>
 #include <stdexcept>
-#include <utility>
-#include <limits>
 
 namespace wf {
 
-    template<typename T>
+    template <typename T>
     struct Span {
         const T* data = nullptr;
-        size_t   size = 0;
+        size_t size = 0;
 
         const T& operator[](size_t i) const { return data[i]; }
         bool empty() const noexcept { return size == 0; }
+        const T* begin() const noexcept { return data; }
+        const T* end() const noexcept { return data + size; }
     };
 
     class Variant {
     public:
         enum class Kind : uint8_t {
             Null,
-
             Bool,
             Int32,
             Int64,
@@ -30,9 +31,7 @@ namespace wf {
             UInt64,
             Float,
             Double,
-
-            String, 
-
+            String,
             BoolArray,
             Int16Array,
             Int32Array,
@@ -47,13 +46,12 @@ namespace wf {
     public:
         Variant() noexcept;
         ~Variant();
-
         Variant(const Variant&);
         Variant(Variant&&) noexcept;
         Variant& operator=(Variant);
-        Variant& operator=(Variant&&) noexcept;
+        //Variant& operator=(Variant&&) noexcept;
 
-        // scalar
+        // scalar constructors
         Variant(bool);
         Variant(int32_t);
         Variant(int64_t);
@@ -62,30 +60,45 @@ namespace wf {
         Variant(float);
         Variant(double);
 
-        // aggregate
+        // aggregate constructors
         Variant(const std::string&);
         Variant(std::string&&);
+        Variant(const char*);  // 便利构造函数
+        Variant(const std::vector<bool>&);
+        Variant(const std::vector<int16_t>&);
         Variant(const std::vector<int32_t>&);
+        Variant(const std::vector<int64_t>&);
+        Variant(const std::vector<uint16_t>&);
+        Variant(const std::vector<uint32_t>&);
+        Variant(const std::vector<uint64_t>&);
         Variant(const std::vector<double>&);
         Variant(const std::vector<std::string>&);
 
+        // accessors
         Kind kind() const noexcept { return m_kind; }
         bool is_null() const noexcept { return m_kind == Kind::Null; }
         bool is_numeric() const noexcept;
+        bool is_array() const noexcept;
+        bool is_heap() const noexcept { return m_is_heap; }
 
-        // strict access
-        bool     as_bool()   const;
-        int16_t  as_i16()    const;
-        int32_t  as_i32()    const;
-        int64_t  as_i64()    const;
-        uint32_t as_u32()    const;
-        uint64_t as_u64()    const;
-        float    as_float()  const;
-        double   as_double() const;
-
+        // strict access (throws on type mismatch)
+        bool as_bool() const;
+        int16_t as_i16() const;
+        int32_t as_i32() const;
+        int64_t as_i64() const;
+        uint32_t as_u32() const;
+        uint64_t as_u64() const;
+        float as_float() const;
+        double as_double() const;
         const std::string& as_string() const;
 
+        const std::vector<bool>& as_bool_array() const;
+        const std::vector<int16_t>& as_i16_array() const;
         const std::vector<int32_t>& as_i32_array() const;
+        const std::vector<int64_t>& as_i64_array() const;
+        const std::vector<uint16_t>& as_u16_array() const;
+        const std::vector<uint32_t>& as_u32_array() const;
+        const std::vector<uint64_t>& as_u64_array() const;
         const std::vector<double>& as_double_array() const;
         const std::vector<std::string>& as_string_array() const;
 
@@ -100,8 +113,7 @@ namespace wf {
         bool to_float(float& out) const noexcept;
         bool to_double(double& out) const noexcept;
 
-
-        // Array numeric promotion (non-mutating)
+        // array numeric promotion (non-mutating)
         bool to_bool_array(std::vector<bool>& out) const noexcept;
         bool to_int16_array(std::vector<int16_t>& out) const noexcept;
         bool to_uint16_array(std::vector<uint16_t>& out) const noexcept;
@@ -114,21 +126,25 @@ namespace wf {
         // zero-copy numeric array view
         bool view_double_array(Span<double>& out) const noexcept;
         bool view_i32_array(Span<int32_t>& out) const noexcept;
+        bool view_i64_array(Span<int64_t>& out) const noexcept;
+        bool view_u32_array(Span<uint32_t>& out) const noexcept;
+        bool view_u64_array(Span<uint64_t>& out) const noexcept;
 
     private:
         static constexpr size_t SBO_SIZE = 32;
         static constexpr size_t SBO_ALIGN = alignof(std::max_align_t);
+
         using SBO = std::aligned_storage_t<SBO_SIZE, SBO_ALIGN>;
 
         union Storage {
-            bool     b;
-            int32_t  i32;
-            int64_t  i64;
+            bool b;
+            int32_t i32;
+            int64_t i64;
             uint32_t u32;
             uint64_t u64;
-            float    f;
-            double   d;
-            SBO      sbo;
+            float f;
+            double d;
+            SBO sbo;
             void* heap;
         };
 
@@ -137,35 +153,55 @@ namespace wf {
             void (*copy)(Variant&, const Variant&);
         };
 
-        // ---------- internal helpers ----------
-        template<typename T>
-        T* sbo_ptr() { return reinterpret_cast<T*>(&m_storage.sbo); }
+        // internal helpers
+        template <typename T>
+        T* sbo_ptr() {
+            return reinterpret_cast<T*>(&m_storage.sbo);
+        }
 
-        template<typename T>
-        const T* sbo_ptr() const { return reinterpret_cast<const T*>(&m_storage.sbo); }
+        template <typename T>
+        const T* sbo_ptr() const {
+            return reinterpret_cast<const T*>(&m_storage.sbo);
+        }
+
+        template <typename T>
+        static bool fits_in_sbo() {
+            return sizeof(T) <= SBO_SIZE && alignof(T) <= SBO_ALIGN;
+        }
 
         void destroy();
         void copy_from(const Variant&);
-
         static const Ops& ops_for(Kind);
 
-        // destroy
+        // destroy operations
         static void destroy_null(Variant&);
         static void destroy_string(Variant&);
+        static void destroy_bool_array(Variant&);
+        static void destroy_i16_array(Variant&);
         static void destroy_i32_array(Variant&);
+        static void destroy_i64_array(Variant&);
+        static void destroy_u16_array(Variant&);
+        static void destroy_u32_array(Variant&);
+        static void destroy_u64_array(Variant&);
         static void destroy_double_array(Variant&);
         static void destroy_string_array(Variant&);
 
-        // copy
+        // copy operations
         static void copy_pod(Variant&, const Variant&);
         static void copy_string(Variant&, const Variant&);
+        static void copy_bool_array(Variant&, const Variant&);
+        static void copy_i16_array(Variant&, const Variant&);
         static void copy_i32_array(Variant&, const Variant&);
+        static void copy_i64_array(Variant&, const Variant&);
+        static void copy_u16_array(Variant&, const Variant&);
+        static void copy_u32_array(Variant&, const Variant&);
+        static void copy_u64_array(Variant&, const Variant&);
         static void copy_double_array(Variant&, const Variant&);
         static void copy_string_array(Variant&, const Variant&);
 
     private:
-        Kind    m_kind;
-        bool    m_is_heap;
+        Kind m_kind;
+        bool m_is_heap;
         Storage m_storage;
     };
 

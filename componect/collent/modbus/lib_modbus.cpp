@@ -206,11 +206,11 @@ void LibModbus::response_callback(uint8_t function_code, uint16_t start_address,
     else
         key = "ModbusData";
 
-    // 3）写入 DataContext（注意这里是右值，不要传 &value）
-    ctx->push_result(key, std::move(value), DataDomain::TIME_SERIES, "LibModbus");
+    // 3）写入 DataContext
+    data_context->push_result(key, std::move(value), DataDomain::TIME_SERIES, "LibModbus");
 
     // 4）发布到总线上
-    m_data_hub->publish(std::to_string(m_device_context.stream_id), ctx);
+    m_data_hub->publish(std::to_string(m_device_context.stream_id), data_context);
 }
 
 void LibModbus::error_callback(const modbus_request& req, const std::string& error_message)
