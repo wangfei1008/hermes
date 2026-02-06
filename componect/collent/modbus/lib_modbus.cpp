@@ -207,9 +207,7 @@ void LibModbus::response_callback(uint8_t function_code, uint16_t start_address,
         key = "ModbusData";
 
     // 3）写入 DataContext（注意这里是右值，不要传 &value）
-    ctx->push_result(key, std::move(value),
-        DataDomain::TIME_SERIES,
-        "LibModbus");
+    ctx->push_result(key, std::move(value), DataDomain::TIME_SERIES, "LibModbus");
 
     // 4）发布到总线上
     m_data_hub->publish(std::to_string(m_device_context.stream_id), ctx);

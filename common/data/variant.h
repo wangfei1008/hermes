@@ -31,9 +31,15 @@ namespace wf {
             Float,
             Double,
 
-            String,
+            String, 
 
+            BoolArray,
+            Int16Array,
             Int32Array,
+            Int64Array,
+            UInt16Array,
+            UInt32Array,
+            UInt64Array,
             DoubleArray,
             StringArray,
         };
@@ -69,6 +75,7 @@ namespace wf {
 
         // strict access
         bool     as_bool()   const;
+        int16_t  as_i16()    const;
         int32_t  as_i32()    const;
         int64_t  as_i64()    const;
         uint32_t as_u32()    const;
@@ -83,11 +90,25 @@ namespace wf {
         const std::vector<std::string>& as_string_array() const;
 
         // numeric promotion (non-mutating)
+        bool to_bool(bool& out) const noexcept;
+        bool to_int16(int16_t& out) const noexcept;
+        bool to_uint16(uint16_t& out) const noexcept;
+        bool to_int32(int32_t& out) const noexcept;
+        bool to_uint32(uint32_t& out) const noexcept;
         bool to_int64(int64_t& out) const noexcept;
         bool to_uint64(uint64_t& out) const noexcept;
+        bool to_float(float& out) const noexcept;
         bool to_double(double& out) const noexcept;
 
+
         // Array numeric promotion (non-mutating)
+        bool to_bool_array(std::vector<bool>& out) const noexcept;
+        bool to_int16_array(std::vector<int16_t>& out) const noexcept;
+        bool to_uint16_array(std::vector<uint16_t>& out) const noexcept;
+        bool to_int32_array(std::vector<int32_t>& out) const noexcept;
+        bool to_uint32_array(std::vector<uint32_t>& out) const noexcept;
+        bool to_int64_array(std::vector<int64_t>& out) const noexcept;
+        bool to_uint64_array(std::vector<uint64_t>& out) const noexcept;
         bool to_double_array(std::vector<double>& out) const noexcept;
 
         // zero-copy numeric array view

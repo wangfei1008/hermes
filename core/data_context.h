@@ -48,7 +48,6 @@ public:
     std::unordered_map<std::string, wf::Variant> algo_params;
 
     // --- 算法操作接口 ---
-
     // 动态增加算法结果
     void push_result(const std::string& name, wf::Variant&& val, DataDomain dom, const std::string& algo_name)
     {

@@ -1,4 +1,4 @@
-﻿#include "variant.h"
+#include "variant.h"
 #include <new>
 
 namespace wf {
@@ -119,19 +119,26 @@ namespace wf {
 
     // ---------- ops ----------
     const Variant::Ops& Variant::ops_for(Kind k) {
+        // 顺序必须与 Kind 枚举保持一致
         static const Ops table[] = {
-            { destroy_null, copy_pod }, // Null
-            { destroy_null, copy_pod }, // Bool
-            { destroy_null, copy_pod }, // Int32
-            { destroy_null, copy_pod }, // Int64
-            { destroy_null, copy_pod }, // UInt32
-            { destroy_null, copy_pod }, // UInt64
-            { destroy_null, copy_pod }, // Float
-            { destroy_null, copy_pod }, // Double
-            { destroy_string, copy_string },
-            { destroy_i32_array, copy_i32_array },
-            { destroy_double_array, copy_double_array },
-            { destroy_string_array, copy_string_array },
+            { destroy_null,         copy_pod        }, // Null
+            { destroy_null,         copy_pod        }, // Bool
+            { destroy_null,         copy_pod        }, // Int32
+            { destroy_null,         copy_pod        }, // Int64
+            { destroy_null,         copy_pod        }, // UInt32
+            { destroy_null,         copy_pod        }, // UInt64
+            { destroy_null,         copy_pod        }, // Float
+            { destroy_null,         copy_pod        }, // Double
+            { destroy_string,       copy_string     }, // String
+            { destroy_null,         copy_pod        }, // BoolArray (当前未专门使用)
+            { destroy_null,         copy_pod        }, // Int16Array (当前未专门使用)
+            { destroy_i32_array,    copy_i32_array  }, // Int32Array
+            { destroy_null,         copy_pod        }, // Int64Array (当前未专门使用)
+            { destroy_null,         copy_pod        }, // UInt16Array (当前未专门使用)
+            { destroy_null,         copy_pod        }, // UInt32Array (当前未专门使用)
+            { destroy_null,         copy_pod        }, // UInt64Array (当前未专门使用)
+            { destroy_double_array, copy_double_array }, // DoubleArray
+            { destroy_string_array, copy_string_array }, // StringArray
         };
         return table[static_cast<size_t>(k)];
     }
@@ -185,18 +192,44 @@ namespace wf {
     // ---------- strict access ----------
 #define WF_REQ(k) if (m_kind != (k)) throw std::logic_error("bad Variant access")
 
-    bool     Variant::as_bool()   const { WF_REQ(Kind::Bool); return m_storage.b; }
-    int32_t  Variant::as_i32()    const { WF_REQ(Kind::Int32); return m_storage.i32; }
-    int64_t  Variant::as_i64()    const { WF_REQ(Kind::Int64); return m_storage.i64; }
+    bool     Variant::as_bool()   const { WF_REQ(Kind::Bool);  return m_storage.b; }
+
+    int16_t  Variant::as_i16()    const {
+        int16_t out;
+        if (!to_int16(out)) throw std::logic_error("bad Variant access");
+        return out;
+    }
+
+    int32_t  Variant::as_i32()    const { WF_REQ(Kind::Int32);  return m_storage.i32; }
+    int64_t  Variant::as_i64()    const { WF_REQ(Kind::Int64);  return m_storage.i64; }
     uint32_t Variant::as_u32()    const { WF_REQ(Kind::UInt32); return m_storage.u32; }
     uint64_t Variant::as_u64()    const { WF_REQ(Kind::UInt64); return m_storage.u64; }
-    float    Variant::as_float()  const { WF_REQ(Kind::Float); return m_storage.f; }
+    float    Variant::as_float()  const { WF_REQ(Kind::Float);  return m_storage.f; }
     double   Variant::as_double() const { WF_REQ(Kind::Double); return m_storage.d; }
 
-    const std::string& Variant::as_string() const { WF_REQ(Kind::String); return *sbo_ptr<std::string>(); }
-    const std::vector<int32_t>& Variant::as_i32_array() const { WF_REQ(Kind::Int32Array); return *sbo_ptr<std::vector<int32_t>>(); }
-    const std::vector<double>& Variant::as_double_array() const { WF_REQ(Kind::DoubleArray); return *sbo_ptr<std::vector<double>>(); }
-    const std::vector<std::string>& Variant::as_string_array() const { WF_REQ(Kind::StringArray); return *sbo_ptr<std::vector<std::string>>(); }
+    const std::string& Variant::as_string() const {
+        WF_REQ(Kind::String);
+        if (m_is_heap) return *static_cast<const std::string*>(m_storage.heap);
+        return *sbo_ptr<std::string>();
+    }
+
+    const std::vector<int32_t>& Variant::as_i32_array() const {
+        WF_REQ(Kind::Int32Array);
+        if (m_is_heap) return *static_cast<const std::vector<int32_t>*>(m_storage.heap);
+        return *sbo_ptr<std::vector<int32_t>>();
+    }
+
+    const std::vector<double>& Variant::as_double_array() const {
+        WF_REQ(Kind::DoubleArray);
+        if (m_is_heap) return *static_cast<const std::vector<double>*>(m_storage.heap);
+        return *sbo_ptr<std::vector<double>>();
+    }
+
+    const std::vector<std::string>& Variant::as_string_array() const {
+        WF_REQ(Kind::StringArray);
+        if (m_is_heap) return *static_cast<const std::vector<std::string>*>(m_storage.heap);
+        return *sbo_ptr<std::vector<std::string>>();
+    }
 
 #undef WF_REQ
 
@@ -205,48 +238,239 @@ namespace wf {
         return m_kind >= Kind::Bool && m_kind <= Kind::Double;
     }
 
+    bool Variant::to_bool(bool& out) const noexcept {
+        switch (m_kind) {
+        case Kind::Bool:   out = m_storage.b; return true;
+        case Kind::Int32:  out = (m_storage.i32 != 0); return true;
+        case Kind::Int64:  out = (m_storage.i64 != 0); return true;
+        case Kind::UInt32: out = (m_storage.u32 != 0); return true;
+        case Kind::UInt64: out = (m_storage.u64 != 0); return true;
+        case Kind::Float:  out = (m_storage.f != 0.0f); return true;
+        case Kind::Double: out = (m_storage.d != 0.0);  return true;
+        default: return false;
+        }
+    }
+
+    bool Variant::to_int16(int16_t& out) const noexcept {
+        int64_t tmp;
+        if (!to_int64(tmp)) return false;
+        if (tmp < std::numeric_limits<int16_t>::min() ||
+            tmp > std::numeric_limits<int16_t>::max()) return false;
+        out = static_cast<int16_t>(tmp);
+        return true;
+    }
+
+    bool Variant::to_uint16(uint16_t& out) const noexcept {
+        uint64_t tmp;
+        if (!to_uint64(tmp)) return false;
+        if (tmp > std::numeric_limits<uint16_t>::max()) return false;
+        out = static_cast<uint16_t>(tmp);
+        return true;
+    }
+
+    bool Variant::to_int32(int32_t& out) const noexcept {
+        if (m_kind == Kind::Int32) { out = m_storage.i32; return true; }
+        int64_t tmp;
+        if (!to_int64(tmp)) return false;
+        if (tmp < std::numeric_limits<int32_t>::min() ||
+            tmp > std::numeric_limits<int32_t>::max()) return false;
+        out = static_cast<int32_t>(tmp);
+        return true;
+    }
+
+    bool Variant::to_uint32(uint32_t& out) const noexcept {
+        if (m_kind == Kind::UInt32) { out = m_storage.u32; return true; }
+        uint64_t tmp;
+        if (!to_uint64(tmp)) return false;
+        if (tmp > std::numeric_limits<uint32_t>::max()) return false;
+        out = static_cast<uint32_t>(tmp);
+        return true;
+    }
+
     bool Variant::to_int64(int64_t& o) const noexcept {
         switch (m_kind) {
-        case Kind::Bool: o = m_storage.b; return true;
-        case Kind::Int32: o = m_storage.i32; return true;
-        case Kind::Int64: o = m_storage.i64; return true;
+        case Kind::Bool:   o = m_storage.b;  return true;
+        case Kind::Int32:  o = m_storage.i32; return true;
+        case Kind::Int64:  o = m_storage.i64; return true;
         case Kind::UInt32: o = m_storage.u32; return true;
         case Kind::UInt64:
-            if (m_storage.u64 > (uint64_t)std::numeric_limits<int64_t>::max()) return false;
-            o = (int64_t)m_storage.u64; return true;
-        case Kind::Float: o = (int64_t)m_storage.f; return true;
-        case Kind::Double: o = (int64_t)m_storage.d; return true;
+            if (m_storage.u64 > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
+                return false;
+            o = static_cast<int64_t>(m_storage.u64); return true;
+        case Kind::Float:  o = static_cast<int64_t>(m_storage.f); return true;
+        case Kind::Double: o = static_cast<int64_t>(m_storage.d); return true;
         default: return false;
         }
     }
 
     bool Variant::to_uint64(uint64_t& o) const noexcept {
-        if (!is_numeric()) return false;
+        switch (m_kind) {
+        case Kind::Bool:   o = m_storage.b ? 1u : 0u; return true;
+        case Kind::Int32:
+            if (m_storage.i32 < 0) return false;
+            o = static_cast<uint64_t>(m_storage.i32); return true;
+        case Kind::Int64:
+            if (m_storage.i64 < 0) return false;
+            o = static_cast<uint64_t>(m_storage.i64); return true;
+        case Kind::UInt32: o = m_storage.u32; return true;
+        case Kind::UInt64: o = m_storage.u64; return true;
+        case Kind::Float:
+            if (m_storage.f < 0.0f) return false;
+            o = static_cast<uint64_t>(m_storage.f); return true;
+        case Kind::Double:
+            if (m_storage.d < 0.0) return false;
+            o = static_cast<uint64_t>(m_storage.d); return true;
+        default: return false;
+        }
+    }
+
+    bool Variant::to_float(float& out) const noexcept {
         double d;
-        if (!to_double(d) || d < 0) return false;
-        o = (uint64_t)d;
+        if (!to_double(d)) return false;
+        out = static_cast<float>(d);
         return true;
     }
 
     bool Variant::to_double(double& o) const noexcept {
         switch (m_kind) {
-        case Kind::Bool: o = m_storage.b ? 1.0 : 0.0; return true;
-        case Kind::Int32: o = m_storage.i32; return true;
-        case Kind::Int64: o = (double)m_storage.i64; return true;
-        case Kind::UInt32: o = m_storage.u32; return true;
-        case Kind::UInt64: o = (double)m_storage.u64; return true;
-        case Kind::Float: o = m_storage.f; return true;
+        case Kind::Bool:   o = m_storage.b ? 1.0 : 0.0; return true;
+        case Kind::Int32:  o = static_cast<double>(m_storage.i32); return true;
+        case Kind::Int64:  o = static_cast<double>(m_storage.i64); return true;
+        case Kind::UInt32: o = static_cast<double>(m_storage.u32); return true;
+        case Kind::UInt64: o = static_cast<double>(m_storage.u64); return true;
+        case Kind::Float:  o = static_cast<double>(m_storage.f);  return true;
         case Kind::Double: o = m_storage.d; return true;
         default: return false;
         }
     }
 
     // ---------- array numeric promotion ----------
-    bool Variant::to_double_array(std::vector<double>& out) const noexcept {
-        if (m_kind == Kind::DoubleArray) { out = as_double_array(); return true; }
+
+    bool Variant::to_bool_array(std::vector<bool>& out) const noexcept {
+        out.clear();
         if (m_kind == Kind::Int32Array) {
             const auto& in = as_i32_array();
-            out.clear();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(v != 0);
+            return true;
+        }
+        if (m_kind == Kind::DoubleArray) {
+            const auto& in = as_double_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(v != 0.0);
+            return true;
+        }
+        return false;
+    }
+
+    bool Variant::to_int16_array(std::vector<int16_t>& out) const noexcept {
+        out.clear();
+        if (m_kind == Kind::Int32Array) {
+            const auto& in = as_i32_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<int16_t>(v));
+            return true;
+        }
+        if (m_kind == Kind::DoubleArray) {
+            const auto& in = as_double_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<int16_t>(v));
+            return true;
+        }
+        return false;
+    }
+
+    bool Variant::to_uint16_array(std::vector<uint16_t>& out) const noexcept {
+        out.clear();
+        if (m_kind == Kind::Int32Array) {
+            const auto& in = as_i32_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<uint16_t>(v));
+            return true;
+        }
+        if (m_kind == Kind::DoubleArray) {
+            const auto& in = as_double_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<uint16_t>(v));
+            return true;
+        }
+        return false;
+    }
+
+    bool Variant::to_int32_array(std::vector<int32_t>& out) const noexcept {
+        out.clear();
+        if (m_kind == Kind::Int32Array) {
+            out = as_i32_array();
+            return true;
+        }
+        if (m_kind == Kind::DoubleArray) {
+            const auto& in = as_double_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<int32_t>(v));
+            return true;
+        }
+        return false;
+    }
+
+    bool Variant::to_uint32_array(std::vector<uint32_t>& out) const noexcept {
+        out.clear();
+        if (m_kind == Kind::Int32Array) {
+            const auto& in = as_i32_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<uint32_t>(v));
+            return true;
+        }
+        if (m_kind == Kind::DoubleArray) {
+            const auto& in = as_double_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<uint32_t>(v));
+            return true;
+        }
+        return false;
+    }
+
+    bool Variant::to_int64_array(std::vector<int64_t>& out) const noexcept {
+        out.clear();
+        if (m_kind == Kind::Int32Array) {
+            const auto& in = as_i32_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<int64_t>(v));
+            return true;
+        }
+        if (m_kind == Kind::DoubleArray) {
+            const auto& in = as_double_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<int64_t>(v));
+            return true;
+        }
+        return false;
+    }
+
+    bool Variant::to_uint64_array(std::vector<uint64_t>& out) const noexcept {
+        out.clear();
+        if (m_kind == Kind::Int32Array) {
+            const auto& in = as_i32_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<uint64_t>(v));
+            return true;
+        }
+        if (m_kind == Kind::DoubleArray) {
+            const auto& in = as_double_array();
+            out.reserve(in.size());
+            for (auto v : in) out.push_back(static_cast<uint64_t>(v));
+            return true;
+        }
+        return false;
+    }
+
+    bool Variant::to_double_array(std::vector<double>& out) const noexcept {
+        out.clear();
+        if (m_kind == Kind::DoubleArray) {
+            out = as_double_array();
+            return true;
+        }
+        if (m_kind == Kind::Int32Array) {
+            const auto& in = as_i32_array();
             out.reserve(in.size());
             for (int32_t v : in) out.push_back(static_cast<double>(v));
             return true;
