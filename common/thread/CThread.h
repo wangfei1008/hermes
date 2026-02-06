@@ -5,7 +5,6 @@
 #include "pthread.h"
 #include <functional>
 #include <string>
-using namespace std;
 
 class CThread
 {

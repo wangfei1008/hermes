@@ -5,10 +5,10 @@
 rt_string::rt_string(char *input, int len)
 {
     m_input_string.clear();
-    m_input_string = string(input, len);
+    m_input_string = std::string(input, len);
 }
 
-rt_string::rt_string(const string &input)
+rt_string::rt_string(const std::string &input)
 {
     m_input_string = input;
 }

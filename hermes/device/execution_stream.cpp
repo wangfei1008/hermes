@@ -29,9 +29,9 @@ ExecutionStream::~ExecutionStream()
     LOGINFO("[ExecutionStream][%s][%d] stream = %s destroyed", m_device_name.c_str(), m_id, m_name.c_str());
 }
 
-void ExecutionStream::add_component(IComponent* comp, const std::string& lib_name)
+void ExecutionStream::add_component(IComponent* comp, const std::string& lib_name, int order_index, int output_to_next)
 {
-    m_pipeline->add_component(comp, lib_name);
+    m_pipeline->add_component(comp, lib_name, order_index, output_to_next);
 }
 
 void ExecutionStream::start()

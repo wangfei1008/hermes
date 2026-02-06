@@ -119,10 +119,11 @@ void DataProcessor::work_loop()
                 }
 
             } catch (const std::exception& e) {
-                LOGERROR("DataProcessor[%d]: Pipeline execution failed: %s",
+                LOGERROR("[DataProcessor][%s][%d] Pipeline execution failed: %s",
                     m_pipeline->device_name().c_str(), m_pipeline->id(), e.what());
             } catch (...) {
-                LOGERROR("DataProcessor[%d]: Pipeline execution failed (unknown error)", m_pipeline->device_name().c_str(), m_pipeline->id());
+                LOGERROR("[DataProcessor][%s][%d] Pipeline execution failed (unknown error)",
+                    m_pipeline->device_name().c_str(), m_pipeline->id());
             }
         }
     }

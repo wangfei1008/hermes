@@ -38,23 +38,23 @@ std::unique_ptr<Config> Config::load_from_json(const std::string& json_str)
 
     // 解析连接信息
     memset(&cfg->conn_info, 0, sizeof(modbus_conn));
-    cfg->conn_info.type = reader.get_value<int>("connectType");
-    cfg->conn_info.slave = reader.get_value<int>("deviceSlaveID");
+    cfg->conn_info.type = reader.get_value<int>("connect_type");
+    cfg->conn_info.slave = reader.get_value<int>("slave_id");
 
     if (cfg->conn_info.type == modbus_conntype::IP_TCP) {
-        std::string ip = reader.get_value<std::string>("deviceIP");
+        std::string ip = reader.get_value<std::string>("ip");
         memcpy(cfg->conn_info.info.tcp.ip, ip.c_str(),
             std::min(ip.length(), sizeof(cfg->conn_info.info.tcp.ip) - 1));
-        cfg->conn_info.info.tcp.port = reader.get_value<int>("devicePort");
+        cfg->conn_info.info.tcp.port = reader.get_value<int>("port");
     }
     else if (cfg->conn_info.type == modbus_conntype::RTU) {
-        std::string name = reader.get_value<std::string>("deviceName");
+        std::string name = reader.get_value<std::string>("name");
         memcpy(cfg->conn_info.info.rtu.device, name.c_str(),
             std::min(name.length(), sizeof(cfg->conn_info.info.rtu.device) - 1));
-        cfg->conn_info.info.rtu.baud = reader.get_value<int>("deviceBaud");
-        cfg->conn_info.info.rtu.parity = reader.get_value<std::string>("deviceParity")[0];
-        cfg->conn_info.info.rtu.data_bit = reader.get_value<int>("deviceDatabit");
-        cfg->conn_info.info.rtu.stop_bit = reader.get_value<int>("deviceStopbit");
+        cfg->conn_info.info.rtu.baud = reader.get_value<int>("baud");
+        cfg->conn_info.info.rtu.parity = reader.get_value<std::string>("parity")[0];
+        cfg->conn_info.info.rtu.data_bit = reader.get_value<int>("databit");
+        cfg->conn_info.info.rtu.stop_bit = reader.get_value<int>("stopbit");
     }
 
     // 解析命令数组

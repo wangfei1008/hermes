@@ -20,7 +20,7 @@ ComponentPipeline::~ComponentPipeline()
     LOGINFO("[ComponentPipeline][%s][%d] stream = %s destroyed", m_device_name.c_str(), m_id, m_name.c_str());
 }
 
-void ComponentPipeline::add_component(IComponent* comp, const std::string& lib_name)
+void ComponentPipeline::add_component(IComponent* comp, const std::string& lib_name, int order_index, int output_to_next)
 {
     if (m_started) {
         LOGERROR("[ComponentPipeline][%s][%d] Cannot add component after start()", m_device_name.c_str(), m_id);
@@ -32,8 +32,14 @@ void ComponentPipeline::add_component(IComponent* comp, const std::string& lib_n
         return;
     }
 
-    m_components.push_back({comp, lib_name});
-    LOGINFO("[ComponentPipeline][%s][%d] Component from %s added (total: %d)", m_device_name.c_str(), m_id, lib_name.c_str(), m_components.size());
+    ComponentInfo info;
+    info.component = comp;
+    info.lib_name = lib_name;
+    info.order_index = order_index;
+    info.output_to_next = output_to_next;
+    m_components.push_back(std::move(info));
+    LOGINFO("[ComponentPipeline][%s][%d] Component added: order=%d lib=%s output_to_next=%d (total: %zu)",
+        m_device_name.c_str(), m_id, order_index, lib_name.c_str(), output_to_next, m_components.size());
 }
 
 bool ComponentPipeline::start()
@@ -96,7 +102,7 @@ void ComponentPipeline::stop()
     for (auto& info : m_components) {
         try {
             info.component->stop();
-            LOGINFO("[ComponentPipeline][%s][%d] ComponentPipeline[%d]: Component %s stopped", m_device_name.c_str(), m_id, info.lib_name.c_str());
+            LOGINFO("[ComponentPipeline][%s][%d] Component %s stopped", m_device_name.c_str(), m_id, info.lib_name.c_str());
         } catch (const std::exception& e) {
             LOGERROR("[ComponentPipeline][%s][%d] Failed to stop component %s: %s", m_device_name.c_str(),  m_id, info.lib_name.c_str(), e.what());
         }
@@ -113,13 +119,21 @@ bool ComponentPipeline::execute(DataContext::Ptr& data)
     }
 
     // Pipeline 模式：串行处理
+    // 结束标识以数据库 stream_components.output_to_next 为准：
+    // - output_to_next == 0: 本组件处理完即结束（不再执行后续组件）
+    // - output_to_next == 1: 继续执行后续组件
     for (auto& info : m_components)
     {
         try {
-            bool continue_pipeline = info.component->process(data);
-            
-            if (!continue_pipeline) {
-                LOGDEBUG("[ComponentPipeline][%s][%d] Component %s stopped pipeline", m_device_name.c_str(), m_id, info.lib_name.c_str());
+            const bool ok = info.component->process(data);
+            if (!ok) {
+                LOGERROR("[ComponentPipeline][%s][%d] Component %s process returned false", m_device_name.c_str(), m_id, info.lib_name.c_str());
+                return false;
+            }
+
+            if (info.output_to_next == 0) {
+                LOGDEBUG("[ComponentPipeline][%s][%d] Pipeline ended by config: order=%d lib=%s output_to_next=0",
+                    m_device_name.c_str(), m_id, info.order_index, info.lib_name.c_str());
                 return false;
             }
         } catch (const std::exception& e) {
@@ -131,7 +145,7 @@ bool ComponentPipeline::execute(DataContext::Ptr& data)
         }
     }
 
-    return true; // 所有组件处理成功
+    return true; // 所有组件处理成功且配置允许继续后续处理
 }
 
 void ComponentPipeline::dispatch_message(int type, const std::string& msg)

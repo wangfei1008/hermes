@@ -22,7 +22,7 @@ int json_read::init(const char *buffer, size_t len)
     return m_doc.HasParseError() ? -1 : 0;
 }
 
-int json_read::init(const string &buffer)
+int json_read::init(const std::string &buffer)
 {
     //if(!m_doc.Empty()) m_doc.Clear();
     m_doc.Parse(buffer);
@@ -37,10 +37,10 @@ int json_read::init(const rapidjson::Value* value)
     return m_doc.HasParseError() ? -1 : 0;
 }
 
-int json_read::init_file(const string& path)
+int json_read::init_file(const std::string& path)
 {
     std::ifstream fs(path);
-    string str((std::istreambuf_iterator<char>(fs)), (std::istreambuf_iterator<char>()));
+    std::string str((std::istreambuf_iterator<char>(fs)), (std::istreambuf_iterator<char>()));
     if(fs.is_open()) fs.close();
 
     return init(str);
@@ -53,7 +53,7 @@ bool json_read::has_key(const char *key)
 
 const Value *json_read::get_value_pointer(const Value *member, const char *key)
 {
-    string _key("/");
+    std::string _key("/");
     _key += key;
     rapidjson::Pointer pointer(_key);
     if (!pointer.IsValid()) return NULL;
@@ -61,9 +61,9 @@ const Value *json_read::get_value_pointer(const Value *member, const char *key)
     return rapidjson::GetValueByPointer(*member, pointer);
 }
 
-const Value *json_read::get_value_pointer(const Value *member, const string &key)
+const Value *json_read::get_value_pointer(const Value *member, const std::string &key)
 {
-    string _key("/");
+    std::string _key("/");
     _key += key;
     rapidjson::Pointer pointer(_key);
     if (!pointer.IsValid()) return NULL;
@@ -76,7 +76,7 @@ const Value *json_read::get_value_pointer(const char *key)
     return get_value_pointer(&m_doc, key);
 }
 
-const Value *json_read::get_value_pointer(const string &key)
+const Value *json_read::get_value_pointer(const std::string &key)
 {
     return get_value_pointer(&m_doc, key.c_str());
 }
@@ -86,7 +86,7 @@ const Value *json_read::get_value_pointer()
     return &m_doc;
 }
 
-string json_read::to_string(const Value *member)
+std::string json_read::to_string(const Value *member)
 {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

@@ -8,7 +8,6 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/pointer.h>
 
-using namespace std;
 using namespace rapidjson;
 
 class json_read
@@ -19,9 +18,9 @@ public:
 
     //1、初始化
     int init(const char* buffer, size_t len);
-    int init(const string& buffer);
+    int init(const std::string& buffer);
     int init(const rapidjson::Value* value);
-    int init_file(const string& path);
+    int init_file(const std::string& path);
 
     //2、判断释放存在对应key
     bool has_key(const char* key);
@@ -32,7 +31,7 @@ public:
         return get_value<T>(&m_doc, key);
     }
     template<typename T>
-    T get_value(const string key) const {
+    T get_value(const std::string key) const {
         return get_value<T>(&m_doc, key.c_str());
     }
     template<typename T>
@@ -63,7 +62,7 @@ public:
 
 
     template<typename T>
-    T get_value(const rapidjson::Value *member, string key) const {
+    T get_value(const rapidjson::Value *member, std::string key) const {
         if (member->HasMember(key) && (*member)[key].Is<T>()) {
             return (*member)[key].Get<T>();
         }
@@ -71,12 +70,12 @@ public:
     }
 
     const rapidjson::Value *get_value_pointer(const rapidjson::Value *member, const char* key);
-    const rapidjson::Value *get_value_pointer(const rapidjson::Value *member, const string& key);
+    const rapidjson::Value *get_value_pointer(const rapidjson::Value *member, const std::string& key);
     const rapidjson::Value *get_value_pointer(const char* key);
-    const rapidjson::Value *get_value_pointer(const string& key);
+    const rapidjson::Value *get_value_pointer(const std::string& key);
     const rapidjson::Value *get_value_pointer();
 
-    string to_string(const rapidjson::Value *member);
+    std::string to_string(const rapidjson::Value *member);
 private:
     Document m_doc;
 };

@@ -91,7 +91,7 @@ void LibMqtt::start()
 
 void LibMqtt::pause()
 {
-    LOGINFO("[libmqtt][%s][%d] start", m_device_context.device_name.c_str(), m_device_context.stream_id);
+    LOGINFO("[libmqtt][%s][%d] pause", m_device_context.device_name.c_str(), m_device_context.stream_id);
 }
 
 void LibMqtt::resume()

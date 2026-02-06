@@ -2,6 +2,10 @@
 #include "log/log.h"
 #include "component_export.h"
 #include "modbus_connection_factory.h"
+#include "error_code.h"
+#include "time/CTimeStamp.h"
+#include "string/rt_string.h"
+#include "modbus_data_converter.h"
 
 extern "C"  COM_EXPORT bool create_lib(IComponent** new_component);
 extern "C"  COM_EXPORT bool release_lib(IComponent** new_component);
@@ -24,11 +28,14 @@ bool release_lib(IComponent** new_component)
 }
 
 LibModbus::LibModbus()
+	: m_running(false)
+	, m_frame_index(0)
 {
 }
 
 LibModbus::~LibModbus() 
 {
+	stop();
 }
 
 bool LibModbus::init(const DeviceContext& ctx, IDataHub* hub, const std::string& config)
@@ -58,7 +65,7 @@ bool LibModbus::init(const DeviceContext& ctx, IDataHub* hub, const std::string&
 
 void LibModbus::start()
 {
-	if (!m_config) return;
+	if (!m_config || m_running) return;
 
     //1、创建连接modbus连接
     if (!m_scheduler_client.connect(ModbusConnectionFactory::create(&m_config->conn_info)))
@@ -75,22 +82,31 @@ void LibModbus::start()
     //3、管理参数
     manager_args();
 
-	//4、启动循环定时器，每秒尝试判断连接一次
-    m_sendlooptimer.SetInterval(1000000);
-    QObject::connect(&m_sendlooptimer, &CCPUTimer::signal_timerout, [this]() {
-        if (RES_SUCCESS != connect()) return;
-        });
-    m_sendlooptimer.Start();
-
-    return RES_SUCCESS;
+	//4、启动连接检查线程
+    m_worker = std::thread(&LibModbus::worker_loop, this);
+    m_running = true;
 }
 
 void LibModbus::pause()
 {
+    LOGINFO("[libmodbus][%s][%d] pause", m_device_context.device_name.c_str(), m_device_context.stream_id);
 }
 
 void LibModbus::resume()
 {
+	LOGINFO("[libmodbus][%s][%d] resume", m_device_context.device_name.c_str(), m_device_context.stream_id);
+}
+
+void LibModbus::worker_loop()
+{
+	while (m_running)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		if (!connect())
+		{
+			continue;
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -103,22 +119,23 @@ void LibModbus::resume()
 ///////////////////////////////////////////////////////////////////
 bool LibModbus::connect()
 {
-	if (m_scheduler_client.is_connected()) return RES_SUCCESS;
-	m_open = m_scheduler_client.reconnect();
-	if (m_open)
+	if (m_scheduler_client.is_connected()) return true;
+
+	if (m_scheduler_client.reconnect())
 	{
-		LOGINFO("[%d][%f][%s] modbus reconnect success", m_compenenttype, GetTimeStamp(), get_name().c_str());
+		LOGINFO("[libmodbus][%s][%d] modbus reconnect success", m_device_context.device_name.c_str(), m_device_context.stream_id);
+        return true;
 	}
-	else
-	{
-		LOGERROR("[%d][%f][%s] modbus reconnect fail", m_compenenttype, GetTimeStamp(), get_name().c_str());
-	}
-	return m_open ? RES_SUCCESS : RES_ERR_OPEN_IO;
+
+	LOGERROR("[libmodbus][%s][%d] modbus reconnect fail", m_device_context.device_name.c_str(), m_device_context.stream_id);
+	
+	return false;
 }
 void LibModbus::stop()
 {
-    close();
     m_running = false;
+    m_scheduler_client.stop_scheduler();
+    m_scheduler_client.disconnect();    
 }
 
 void LibModbus::on_message(int type, const std::string& msg)
@@ -130,43 +147,6 @@ bool LibModbus::process(DataContext::Ptr& pkg)
 {
     LOGINFO("[libmodbus][%s][%d] process data frame_index=%lu", m_device_context.device_name.c_str(), m_device_context.stream_id, pkg->header.frame_index);
     return true;
-}
-
-///////////////////////////////////////////////////////////////////
-//函数名称： close
-//功能描述： 关闭modbus连接
-//参数说明： 参数说明
-//返回值：   返回值说明
-//作者：wangfei
-//时间：2023/11/17
-///////////////////////////////////////////////////////////////////
-void LibModbus::close()
-{
-    m_scheduler_client.stop_scheduler();
-    m_scheduler_client.disconnect();
-}
-
-void LibModbus::write_targetdata(int value, double timestamp, const string& config)
-{
-    DataTarget data;
-    data.set_timestamp(timestamp);
-    data.set_data(list<wf::variant>(1, value));
-    data.set_config(config);
-    data.set_name(get_name());
-
-    m_p_data->set_data_target(data);
-    LOGINFO("[%d][%f][%s] abnormal, value = %f", m_compenenttype, timestamp, get_name().c_str(), value);
-}
-
-void LibModbus::write_rawdata(const std::vector<uint8_t>&buffer, double timestamp, const string &config)
-{
-    DataRaw raw;
-    raw.set_config(config);
-    raw.set_id(get_name());
-    raw.set_buffer(buffer);
-    raw.set_timestamp(timestamp);
-
-    m_p_data->set_data_raw(raw);
 }
 
 void LibModbus::manager_args()
@@ -187,16 +167,68 @@ void LibModbus::response_callback(uint8_t function_code, uint16_t start_address,
 {
 	auto node = m_config->get_param(function_code, start_address);
     double timestamp = GetTimeStamp();
-    write_rawdata(data, timestamp, node->config);
-    LOGINFO("[%d][%f][%s]read modbus code = %d, adress = %d, length = %d, buffer = %s", m_compenenttype, timestamp, get_name().c_str(), \
-        node->function_code, node->address_start, node->read_length, rt_string(string(data.begin(), data.end())).dec_2_hex().c_str());
+    //const std::string hex = rt_string(std::string(data.begin(), data.end())).dec_2_hex();
+    //LOGINFO("[libmodbus][%s][%d] read modbus ok: code=%d address=%d length=%d buffer(hex)=%s",
+    //    m_device_context.device_name.c_str(), m_device_context.stream_id,
+    //    node ? node->function_code : function_code,
+    //    node ? node->address_start : start_address,
+    //    node ? node->read_length : (int)length,
+    //    hex.c_str());
+
+    DataContext::Ptr data_context = std::make_shared<DataContext>();
+    data_context->header.source_device = m_device_context.device_name;
+    data_context->header.stream_id = m_device_context.stream_id;
+    data_context->header.timestamp_ms = static_cast<int64_t>(timestamp);
+    data_context->header.frame_index = m_frame_index++;
+
+    // 1）根据配置转换数值 → Variant
+    wf::Variant value;
+
+    if (node) {
+        // 这里用 ModbusDataConverter 做数值解析
+        // 你可以根据 node->type / node->bit_step_size / byte_order 等字段细化
+        value = ModbusDataConverter::converter(function_code, start_address, static_cast<uint16_t>(node->read_length), data, node->value_type, node->byte_order);
+    }
+    else {
+        // 找不到配置时：至少保留原始 HEX 字符串，便于排查
+        std::string hex = rt_string(std::string(data.begin(), data.end())).dec_2_hex();
+        value = wf::Variant(hex);
+    }
+
+    // 2）点名：优先用配置里的 “描述/变量名”，便于后续在流里用 key 访问
+    std::string key;
+    if (node && !node->description.empty())
+        key = node->description;
+    else if (node && !node->flowid.empty())
+        key = node->flowid;
+    else if (node && !node->type.empty())
+        key = node->type;
+    else
+        key = "ModbusData";
+
+    // 3）写入 DataContext（注意这里是右值，不要传 &value）
+    ctx->push_result(key, std::move(value),
+        DataDomain::TIME_SERIES,
+        "LibModbus");
+
+    // 4）发布到总线上
+    m_data_hub->publish(std::to_string(m_device_context.stream_id), ctx);
 }
 
 void LibModbus::error_callback(const modbus_request& req, const std::string& error_message)
 {
     auto node = m_config->get_param(req.get_code(), req.get_address());
     double timestamp = GetTimeStamp();
-    write_targetdata(RES_ERR_OPT_IO, timestamp, node->config);
-    LOGERROR("[%d][%f][%s]read modbus fail, code = %d, address = %d, length = %d", m_compenenttype, timestamp, get_name().c_str(), \
-        node->get_function_code(), node->get_address_start(), node->get_read_length());
+    LOGERROR("[libmodbus][%s][%d]read modbus fail, code = %d, address = %d, length = %d", m_device_context.device_name.c_str(), m_device_context.stream_id, \
+        node->function_code, node->address_start, node->read_length);
+
+    DataContext::Ptr data = std::make_shared<DataContext>();
+	data->header.source_device = m_device_context.device_name;
+	data->header.stream_id = m_device_context.stream_id;
+	data->header.timestamp_ms = static_cast<int64_t>(timestamp);
+	data->header.frame_index = m_frame_index++;
+
+	data->push_result("ModbusError", error_message, DataDomain::ALARM, "LibModbus");
+
+	m_data_hub->publish(DATA_HUB_TOPIC_FORWARD, data);
 }

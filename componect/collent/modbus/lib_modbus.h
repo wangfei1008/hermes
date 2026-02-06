@@ -4,6 +4,8 @@
 #include "i_component.h"
 #include "config.h"
 #include "modbus_scheduler_client.h"
+#include <thread>
+#include <atomic>
 
 class LibModbus : public IComponent
 {
@@ -22,15 +24,9 @@ public:
     bool process(DataContext::Ptr& pkg) override;
 
 private:
-    //void worker_loop(); //工作线程
+    void worker_loop(); //工作线程
 
-    int connect();
-    int close();
-
-    //往缓存写异常流程输出
-    void write_targetdata(int value, double timestamp, const string& config);
-    //往缓存写正常采集原始数据
-    void write_rawdata(const std::vector<uint8_t>& buffer, double timestamp, const string& config);
+    bool connect();
 
     //参数管理
     void manager_args();
@@ -46,17 +42,10 @@ private:
     ModbusSchedulerClient m_scheduler_client;     //modbus连接
     std::unique_ptr<Config> m_config; //配置
 
-    //std::thread m_worker; //工作线程
-    //std::atomic<bool> m_running{ false }; //运行状态
+    std::thread m_worker; //工作线程
+    std::atomic<bool> m_running{ false }; //运行状态
 
-    bool m_open;
-    //
-    //bool m_sendstartcommand;                       //执行服务器连接命令，即只执行一次部分，每次重新连接服务器需要再次发送
-
-    //CConfig* m_p_config;                            //配置文件信息
-    //ComponentType m_compenenttype;                 //插件类型
-    //CCPUTimer m_sendlooptimer;                     //发送loop命令的定时器
-    //data_flow* m_p_data;                            //流程内的数据缓存
+    std::atomic<unsigned long> m_frame_index;               //数据帧索引
 };
 
 #endif // LIB_MODBUS_H

@@ -4,8 +4,6 @@
 #include <vector>
 #include "data/variant.h"
 
-using namespace  std;
-
 #define GETSET(type, name) \
 private: \
     type name; \

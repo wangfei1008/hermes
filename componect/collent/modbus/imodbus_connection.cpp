@@ -145,5 +145,3 @@ int IModbusConnection::write(modbus_function_code code, uint16_t address, uint16
 	}
 	return (rc == -1) ? RES_ERR_WRITE_IO : RES_SUCCESS;
 }
-
-

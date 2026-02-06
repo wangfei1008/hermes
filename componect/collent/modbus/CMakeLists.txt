@@ -36,6 +36,7 @@ if (WIN32)
     # ---------- link ----------
     target_link_libraries(collent_trigger_modbus PUBLIC
         modbus
+        ws2_32
     )
 
 else()  # Linux

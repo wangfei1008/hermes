@@ -21,7 +21,7 @@ bool json_write::front_object(const char *key, size_t len)
     return false;
 }
 
-bool json_write::front_object(const string &key)
+bool json_write::front_object(const std::string &key)
 {
     return front_object(key.c_str(), key.size());
 }
@@ -43,7 +43,7 @@ bool json_write::front_array(const char *key, size_t len)
     return false;
 }
 
-bool json_write::front_array(const string &key)
+bool json_write::front_array(const std::string &key)
 {
     return front_array(key.c_str(), key.size());
 }
@@ -53,7 +53,7 @@ bool json_write::end_array()
     return m_writer.EndArray();
 }
 
-bool json_write::save(const string &path)
+bool json_write::save(const std::string &path)
 {
     FILE* pfile = fopen(path.c_str(), "wb");
     if(pfile != NULL)

@@ -14,6 +14,11 @@ struct CommandParam
     std::string flowid;
     std::string type;
 
+    //描述
+    std::string value_type;    //数值类型
+    std::string description;   //名称描述
+    std::string byte_order;    //字节序
+
     // Modbus相关
     int address_code = 0;
     int function_code = 0;

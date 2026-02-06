@@ -27,9 +27,11 @@ public:
      * 添加组件到管道
      * @param comp 组件指针（所有权转移）
      * @param lib_name 动态库名称
+     * @param order_index 组件顺序（来自数据库 stream_components.order_index）
+     * @param output_to_next 是否继续后续组件（来自数据库 stream_components.output_to_next；0=结束，1=继续）
      * @note 必须在 start() 之前调用
      */
-    void add_component(IComponent* comp, const std::string& lib_name);
+    void add_component(IComponent* comp, const std::string& lib_name, int order_index, int output_to_next);
 
     /**
      * 启动所有组件
@@ -78,6 +80,8 @@ private:
     struct ComponentInfo {
         IComponent* component;
         std::string lib_name;
+        int order_index = 0;
+        int output_to_next = 1;
     };
     std::string m_device_name;
     int m_id;

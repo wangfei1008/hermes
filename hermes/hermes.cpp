@@ -3,8 +3,6 @@
 #include "log/log.h"
 #include "service.h"
 
-using namespace std;
-
 int main()
 {
 	LOG_INIT("log.properties");

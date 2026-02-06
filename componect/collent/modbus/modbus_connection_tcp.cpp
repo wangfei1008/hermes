@@ -1,7 +1,6 @@
 ﻿
 #include "modbus_connection_tcp.h"
 #include "log/log.h"
-//#include "error_code.h"
 
 ModbusConnectionTCP::ModbusConnectionTCP(const std::string& ip, int port, int slave_id)
     : IModbusConnection()

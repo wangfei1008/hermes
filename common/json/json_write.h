@@ -10,7 +10,6 @@
 #include <rapidjson/stringbuffer.h>
 #include <type_traits>
 
-using namespace std;
 using namespace rapidjson;
 
 class json_write
@@ -22,13 +21,13 @@ public:
     //创建object
     bool front_object();
     bool front_object(const char* key, size_t len);
-    bool front_object(const string& key);
+    bool front_object(const std::string& key);
     bool end_object();
 
     //创建数组
     bool front_array();
     bool front_array(const char* key, size_t len);
-    bool front_array(const string& key);
+    bool front_array(const std::string& key);
     bool end_array();
 
     //设置值
@@ -46,7 +45,7 @@ public:
         return res;
     }
     template<typename T>
-    bool set_value(const string& key, T value){
+    bool set_value(const std::string& key, T value){
         bool res = false;
 
         m_writer.Key(key);
@@ -59,11 +58,11 @@ public:
 
         return res;
     }
-    bool set_value_string(const string& key, const string& value){
+    bool set_value_string(const std::string& key, const std::string& value){
         bool res = false;
 
         m_writer.Key(key);
-        res = m_writer.String(static_cast<string>(value));
+        res = m_writer.String(static_cast<std::string>(value));
 
         return res;
     }
@@ -80,7 +79,7 @@ public:
 
         return res;
     }
-    bool set_value_string(const string& value){
+    bool set_value_string(const std::string& value){
         return m_writer.String(value);
     }
 
@@ -91,7 +90,7 @@ public:
         return m_buffer.GetLength();
     }
 
-    bool save(const string& path);
+    bool save(const std::string& path);
 private:
     StringBuffer m_buffer;
     Writer<StringBuffer> m_writer;
