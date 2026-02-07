@@ -26,7 +26,7 @@ public:
     {
         std::string source_device;
         int stream_id;
-        int64_t timestamp_ms;
+        double timestamp_ms;
         uint64_t frame_index; // 帧序号，算法对齐必用
     } header;
 

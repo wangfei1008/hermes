@@ -2,6 +2,7 @@
 
 #include "data_context_json.h"
 #include "json/json_write.h"
+#include "time/CTimeStamp.h"
 
 #include <algorithm>
 #include <numeric>
@@ -38,9 +39,9 @@ std::string DataContextJsonConverter::to_json(const DataContext& ctx, const Conv
         w.set_value_string("source_device", ctx.header.source_device);
 
         // json_write 只支持 int/double，这里用 double 承载 64 位数值
-        w.set_value("stream_id",       static_cast<int>(ctx.header.stream_id));
-        w.set_value("timestamp_ms",    static_cast<double>(ctx.header.timestamp_ms));
-        w.set_value("frame_index",     static_cast<double>(ctx.header.frame_index));
+        w.set_value("stream_id",       ctx.header.stream_id);
+        w.set_value("timestamp_ms",    ctx.header.timestamp_ms);
+        w.set_value("frame_index",     ctx.header.frame_index);
         w.set_value_string("timestamp_iso", ms_to_iso_string(ctx.header.timestamp_ms));
 
         w.end_object();
@@ -143,11 +144,10 @@ std::string DataContextJsonConverter::to_json_array(const std::vector<DataContex
         {
             w.front_object("header");
             w.set_value_string("source_device", ctx->header.source_device);
-            w.set_value("stream_id",    static_cast<int>(ctx->header.stream_id));
-            w.set_value("timestamp_ms", static_cast<double>(ctx->header.timestamp_ms));
-            w.set_value("frame_index",  static_cast<double>(ctx->header.frame_index));
-            w.set_value_string("timestamp_iso",
-                               ms_to_iso_string(ctx->header.timestamp_ms));
+            w.set_value("stream_id",    ctx->header.stream_id);
+            w.set_value("timestamp_ms", ctx->header.timestamp_ms);
+            w.set_value("frame_index",  ctx->header.frame_index);
+            w.set_value_string("timestamp_iso", ms_to_iso_string(ctx->header.timestamp_ms));
             w.end_object();
         }
 
@@ -243,6 +243,13 @@ std::string DataContextJsonConverter::ms_to_iso_string(int64_t ms)
     return out;
 }
 
+std::string DataContextJsonConverter::ms_to_iso_string(double ms)
+{
+    char buffer[32] = {'\0'};
+    TimeStampToStr(buffer, ms);
+    return std::string(buffer);
+}
+
 std::string DataContextJsonConverter::current_iso_time()
 {
     using namespace std::chrono;
@@ -291,6 +298,15 @@ void DataContextJsonConverter::write_variant(json_write& w, const wf::Variant& v
         const auto& arr = v.as_i32_array();
         for (auto n : arr)
             w.set_value(static_cast<int>(n));
+        w.end_array();
+        break;
+    }
+    case Kind::FloatArray:
+    {
+        w.front_array("value");
+        const auto& arr = v.as_float_array();
+        for (auto d : arr)
+            w.set_value(static_cast<float>(d));
         w.end_array();
         break;
     }

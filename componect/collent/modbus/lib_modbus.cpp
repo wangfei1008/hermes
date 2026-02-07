@@ -166,7 +166,6 @@ void LibModbus::manager_args()
 void LibModbus::response_callback(uint8_t function_code, uint16_t start_address, uint16_t length, const std::vector<uint8_t>& data)
 {
 	auto node = m_config->get_param(function_code, start_address);
-    double timestamp = GetTimeStamp();
     //const std::string hex = rt_string(std::string(data.begin(), data.end())).dec_2_hex();
     //LOGINFO("[libmodbus][%s][%d] read modbus ok: code=%d address=%d length=%d buffer(hex)=%s",
     //    m_device_context.device_name.c_str(), m_device_context.stream_id,
@@ -178,7 +177,7 @@ void LibModbus::response_callback(uint8_t function_code, uint16_t start_address,
     DataContext::Ptr data_context = std::make_shared<DataContext>();
     data_context->header.source_device = m_device_context.device_name;
     data_context->header.stream_id = m_device_context.stream_id;
-    data_context->header.timestamp_ms = static_cast<int64_t>(timestamp);
+    data_context->header.timestamp_ms = GetTimeStamp();
     data_context->header.frame_index = m_frame_index++;
 
     // 1）根据配置转换数值 → Variant

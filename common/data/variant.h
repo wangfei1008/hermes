@@ -39,6 +39,7 @@ namespace wf {
             UInt16Array,
             UInt32Array,
             UInt64Array,
+			FloatArray,
             DoubleArray,
             StringArray,
         };
@@ -71,6 +72,7 @@ namespace wf {
         Variant(const std::vector<uint16_t>&);
         Variant(const std::vector<uint32_t>&);
         Variant(const std::vector<uint64_t>&);
+        Variant(const std::vector<float>&);
         Variant(const std::vector<double>&);
         Variant(const std::vector<std::string>&);
 
@@ -99,6 +101,7 @@ namespace wf {
         const std::vector<uint16_t>& as_u16_array() const;
         const std::vector<uint32_t>& as_u32_array() const;
         const std::vector<uint64_t>& as_u64_array() const;
+        const std::vector<float>& as_float_array() const;
         const std::vector<double>& as_double_array() const;
         const std::vector<std::string>& as_string_array() const;
 
@@ -121,9 +124,11 @@ namespace wf {
         bool to_uint32_array(std::vector<uint32_t>& out) const noexcept;
         bool to_int64_array(std::vector<int64_t>& out) const noexcept;
         bool to_uint64_array(std::vector<uint64_t>& out) const noexcept;
+        bool to_float_array(std::vector<float>& out) const noexcept;
         bool to_double_array(std::vector<double>& out) const noexcept;
 
         // zero-copy numeric array view
+        bool view_float_array(Span<float>& out) const noexcept;
         bool view_double_array(Span<double>& out) const noexcept;
         bool view_i32_array(Span<int32_t>& out) const noexcept;
         bool view_i64_array(Span<int64_t>& out) const noexcept;
@@ -183,6 +188,7 @@ namespace wf {
         static void destroy_u16_array(Variant&);
         static void destroy_u32_array(Variant&);
         static void destroy_u64_array(Variant&);
+        static void destroy_float_array(Variant&);
         static void destroy_double_array(Variant&);
         static void destroy_string_array(Variant&);
 
@@ -196,6 +202,7 @@ namespace wf {
         static void copy_u16_array(Variant&, const Variant&);
         static void copy_u32_array(Variant&, const Variant&);
         static void copy_u64_array(Variant&, const Variant&);
+        static void copy_float_array(Variant&, const Variant&);
         static void copy_double_array(Variant&, const Variant&);
         static void copy_string_array(Variant&, const Variant&);
 

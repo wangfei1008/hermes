@@ -131,6 +131,15 @@ namespace wf {
         }
     }
 
+    void Variant::destroy_float_array(Variant& v) {
+        if (v.m_is_heap) {
+            delete static_cast<std::vector<float>*>(v.m_storage.heap);
+        }
+        else {
+            v.sbo_ptr<std::vector<float>>()->~vector();
+        }
+    }
+
     void Variant::destroy_double_array(Variant& v) {
         if (v.m_is_heap) {
             delete static_cast<std::vector<double>*>(v.m_storage.heap);
@@ -243,7 +252,16 @@ namespace wf {
             d.m_is_heap = false;
         }
     }
-
+    void Variant::copy_float_array(Variant& d, const Variant& s) {
+        if (s.m_is_heap) {
+            d.m_storage.heap = new std::vector<float>(*static_cast<const std::vector<float>*>(s.m_storage.heap));
+            d.m_is_heap = true;
+        }
+        else {
+            new (&d.m_storage.sbo) std::vector<float>(*s.sbo_ptr<std::vector<float>>());
+            d.m_is_heap = false;
+        }
+    }
     void Variant::copy_double_array(Variant& d, const Variant& s) {
         if (s.m_is_heap) {
             d.m_storage.heap = new std::vector<double>(*static_cast<const std::vector<double>*>(s.m_storage.heap));
@@ -286,6 +304,7 @@ namespace wf {
             { destroy_u16_array,    copy_u16_array },     // UInt16Array
             { destroy_u32_array,    copy_u32_array },     // UInt32Array
             { destroy_u64_array,    copy_u64_array },     // UInt64Array
+            { destroy_float_array,  copy_float_array },  // FloatArray
             { destroy_double_array, copy_double_array },  // DoubleArray
             { destroy_string_array, copy_string_array },  // StringArray
         };
@@ -427,6 +446,17 @@ namespace wf {
         }
     }
 
+    Variant::Variant(const std::vector<float>& v) : m_kind(Kind::FloatArray) {
+        if (sizeof(std::vector<float>) > SBO_SIZE || !fits_in_sbo<std::vector<float>>()) {
+            m_storage.heap = new std::vector<float>(v);
+            m_is_heap = true;
+        }
+        else {
+            new (&m_storage.sbo) std::vector<float>(v);
+            m_is_heap = false;
+        }
+    }
+
     Variant::Variant(const std::vector<double>& v) : m_kind(Kind::DoubleArray) {
         if (sizeof(std::vector<double>) > SBO_SIZE || !fits_in_sbo<std::vector<double>>()) {
             m_storage.heap = new std::vector<double>(v);
@@ -500,14 +530,15 @@ namespace wf {
     }
 
     WF_IMPL_ARRAY_ACCESS(as_bool_array, BoolArray, bool)
-        WF_IMPL_ARRAY_ACCESS(as_i16_array, Int16Array, int16_t)
-        WF_IMPL_ARRAY_ACCESS(as_i32_array, Int32Array, int32_t)
-        WF_IMPL_ARRAY_ACCESS(as_i64_array, Int64Array, int64_t)
-        WF_IMPL_ARRAY_ACCESS(as_u16_array, UInt16Array, uint16_t)
-        WF_IMPL_ARRAY_ACCESS(as_u32_array, UInt32Array, uint32_t)
-        WF_IMPL_ARRAY_ACCESS(as_u64_array, UInt64Array, uint64_t)
-        WF_IMPL_ARRAY_ACCESS(as_double_array, DoubleArray, double)
-        WF_IMPL_ARRAY_ACCESS(as_string_array, StringArray, std::string)
+    WF_IMPL_ARRAY_ACCESS(as_i16_array, Int16Array, int16_t)
+    WF_IMPL_ARRAY_ACCESS(as_i32_array, Int32Array, int32_t)
+    WF_IMPL_ARRAY_ACCESS(as_i64_array, Int64Array, int64_t)
+    WF_IMPL_ARRAY_ACCESS(as_u16_array, UInt16Array, uint16_t)
+    WF_IMPL_ARRAY_ACCESS(as_u32_array, UInt32Array, uint32_t)
+    WF_IMPL_ARRAY_ACCESS(as_u64_array, UInt64Array, uint64_t)
+    WF_IMPL_ARRAY_ACCESS(as_float_array, FloatArray, float)
+    WF_IMPL_ARRAY_ACCESS(as_double_array, DoubleArray, double)
+    WF_IMPL_ARRAY_ACCESS(as_string_array, StringArray, std::string)
 
 #undef WF_REQ
 #undef WF_IMPL_SCALAR_ACCESS
@@ -654,6 +685,7 @@ namespace wf {
                 case Kind::UInt16Array:  convert_array(out, as_u16_array()); return true; \
                 case Kind::UInt32Array:  convert_array(out, as_u32_array()); return true; \
                 case Kind::UInt64Array:  convert_array(out, as_u64_array()); return true; \
+                case Kind::FloatArray:   convert_array(out, as_float_array()); return true; \
                 case Kind::DoubleArray:  convert_array(out, as_double_array()); return true; \
                 default: return false; \
             } \
@@ -661,13 +693,14 @@ namespace wf {
     }
 
     WF_ARRAY_CONV_IMPL(to_bool_array, bool)
-        WF_ARRAY_CONV_IMPL(to_int16_array, int16_t)
-        WF_ARRAY_CONV_IMPL(to_uint16_array, uint16_t)
-        WF_ARRAY_CONV_IMPL(to_int32_array, int32_t)
-        WF_ARRAY_CONV_IMPL(to_uint32_array, uint32_t)
-        WF_ARRAY_CONV_IMPL(to_int64_array, int64_t)
-        WF_ARRAY_CONV_IMPL(to_uint64_array, uint64_t)
-        WF_ARRAY_CONV_IMPL(to_double_array, double)
+    WF_ARRAY_CONV_IMPL(to_int16_array, int16_t)
+    WF_ARRAY_CONV_IMPL(to_uint16_array, uint16_t)
+    WF_ARRAY_CONV_IMPL(to_int32_array, int32_t)
+    WF_ARRAY_CONV_IMPL(to_uint32_array, uint32_t)
+    WF_ARRAY_CONV_IMPL(to_int64_array, int64_t)
+    WF_ARRAY_CONV_IMPL(to_uint64_array, uint64_t)
+    WF_ARRAY_CONV_IMPL(to_float_array, float)
+    WF_ARRAY_CONV_IMPL(to_double_array, double)
 
 #undef WF_ARRAY_CONV_IMPL
 
@@ -687,6 +720,12 @@ namespace wf {
                 : nullptr;
 
             // 简化版本:直接访问
+            if (v.kind() == Variant::Kind::FloatArray) {
+                const auto& vec = v.as_float_array();
+                out.data = vec.data();
+                out.size = vec.size();
+                return true;
+            }
             if (v.kind() == Variant::Kind::DoubleArray) {
                 const auto& vec = v.as_double_array();
                 out.data = vec.data();
@@ -706,6 +745,18 @@ namespace wf {
         }
     }
 
+    bool Variant::view_float_array(Span<float>& out) const noexcept {
+        if (m_kind != Kind::FloatArray) return false;
+        try {
+            const auto& v = as_float_array();
+            out.data = v.data();
+            out.size = v.size();
+            return true;
+        }
+        catch (...) {
+            return false;
+        }
+    }
     bool Variant::view_double_array(Span<double>& out) const noexcept {
         if (m_kind != Kind::DoubleArray) return false;
         try {

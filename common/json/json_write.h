@@ -52,6 +52,8 @@ public:
 
         if(std::is_same<T, bool>::value) res = m_writer.Bool(static_cast<bool>(value));
         if(std::is_same<T, int>::value)  res = m_writer.Int(static_cast<int>(value));
+        if (std::is_same<T, int64_t>::value)  res = m_writer.Int64(static_cast<int64_t>(value));
+        if (std::is_same<T, uint64_t>::value)  res = m_writer.Uint64(static_cast<uint64_t>(value));
         if(std::is_same<T, double>::value) res = m_writer.Double(static_cast<double>(value));
         if(std::is_same<T, float>::value) res = m_writer.Double(static_cast<double>(value));
         //if(std::is_same<T, string>::value) res = m_writer.String(static_cast<string>(value));

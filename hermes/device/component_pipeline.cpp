@@ -134,7 +134,7 @@ bool ComponentPipeline::execute(DataContext::Ptr& data)
             if (info.output_to_next == 0) {
                 LOGDEBUG("[ComponentPipeline][%s][%d] Pipeline ended by config: order=%d lib=%s output_to_next=0",
                     m_device_name.c_str(), m_id, info.order_index, info.lib_name.c_str());
-                return false;
+                break;
             }
         } catch (const std::exception& e) {
             LOGERROR("[ComponentPipeline][%s][%d] Component %s process failed: %s", m_device_name.c_str(), m_id, info.lib_name.c_str(), e.what());

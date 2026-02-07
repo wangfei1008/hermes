@@ -44,8 +44,7 @@ std::unique_ptr<ExecutionStream> DeviceBuilder::assemble_stream(const DeviceDTO&
     auto stream = std::make_unique<ExecutionStream>(
         device_info.name,
         stream_info.id, 
-        stream_info.stream_name, 
-        stream_info.subscribe_topic
+        stream_info.stream_name
     );
 
     for (auto& c : comps) {

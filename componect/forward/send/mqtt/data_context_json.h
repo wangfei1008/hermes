@@ -34,6 +34,7 @@ public:
 private:
     // 时间工具
     static std::string ms_to_iso_string(int64_t ms);
+    static std::string ms_to_iso_string(double ms);
     static std::string current_iso_time();
 
     // Variant 序列化（实现内部使用 json_write）

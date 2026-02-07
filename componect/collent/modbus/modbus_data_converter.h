@@ -58,18 +58,12 @@ private:
     static wf::Variant convert_to_bool(const std::vector<uint16_t>& regs);
     static wf::Variant convert_to_int16(const std::vector<uint16_t>& regs);
     static wf::Variant convert_to_uint16(const std::vector<uint16_t>& regs);
-    static wf::Variant convert_to_int32(const std::vector<uint16_t>& regs,
-        const std::string& byte_order);
-    static wf::Variant convert_to_uint32(const std::vector<uint16_t>& regs,
-        const std::string& byte_order);
-    static wf::Variant convert_to_int64(const std::vector<uint16_t>& regs,
-        const std::string& byte_order);
-    static wf::Variant convert_to_uint64(const std::vector<uint16_t>& regs,
-        const std::string& byte_order);
-    static wf::Variant convert_to_float(const std::vector<uint16_t>& regs,
-        const std::string& byte_order);
-    static wf::Variant convert_to_double(const std::vector<uint16_t>& regs,
-        const std::string& byte_order);
+    static wf::Variant convert_to_int32(const std::vector<uint16_t>& regs, const std::string& byte_order);
+    static wf::Variant convert_to_uint32(const std::vector<uint16_t>& regs, const std::string& byte_order);
+    static wf::Variant convert_to_int64(const std::vector<uint16_t>& regs, const std::string& byte_order);
+    static wf::Variant convert_to_uint64(const std::vector<uint16_t>& regs, const std::string& byte_order);
+    static wf::Variant convert_to_float(const std::vector<uint16_t>& regs, const std::string& byte_order);
+    static wf::Variant convert_to_double(const std::vector<uint16_t>& regs, const std::string& byte_order);
 
     // 字节序处理
     static uint32_t reorder_uint32(uint32_t value, const std::string& byte_order);
