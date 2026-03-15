@@ -62,7 +62,7 @@ bool LibMqtt::init(const DeviceContext& ctx, IDataHub* hub, const std::string& c
 	if (m_config->tls) {
 		m_client.set_tls(m_config->ca_crt, m_config->cln_crt, m_config->cln_key);
 	}
-    LOGINFO("[libmqtt][%s][%d] initialized success", ctx.device_name.c_str(), ctx.stream_id);
+    LOGINFO("[libmqtt][%s][%d] initialized success topic = %s", ctx.device_name.c_str(), ctx.stream_id, m_config->topic.c_str());
     return true;
 
 }
@@ -130,8 +130,10 @@ void LibMqtt::worker_loop()
     while (m_running) {
         // 2. 从无锁队列取出数据包
         if (m_queue.try_dequeue(pkg)) {
-            // 执行 MQTT 发送
-            std::string json_data = DataContextJsonConverter::to_json(*pkg.get());
+            // 执行 MQTT 发送（使用默认转换选项）
+            std::string json_data = DataContextJsonConverter::to_json(
+                *pkg.get(), DataContextJsonConverter::ConvertOptions{}
+            );
             m_client.publish(m_config->topic, json_data);
 
             // 3. 将该数据通过流 ID 发布至总线

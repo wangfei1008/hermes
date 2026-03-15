@@ -1,5 +1,11 @@
-﻿#include "modbus_connection_rtu.h"
+#include "modbus_connection_rtu.h"
 #include "log/log.h"
+#if !defined(_WIN32)
+#include <fcntl.h>
+#include <unistd.h>
+#include <cerrno>
+#include <cstring>
+#endif
 
 ModbusConnectionRTU::ModbusConnectionRTU(const std::string& device, int baud, char parity, int data_bit, int stop_bit, int slave_id)
     : IModbusConnection()

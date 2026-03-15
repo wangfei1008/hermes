@@ -35,6 +35,7 @@ std::unique_ptr<Config> Config::load_from_json(const std::string& json_str)
 
     // 解析基础配置
     cfg->interval = reader.get_value<int>("interval");
+    if(cfg->interval < 50) cfg->interval = 50;
 
     // 解析连接信息
     memset(&cfg->conn_info, 0, sizeof(modbus_conn));

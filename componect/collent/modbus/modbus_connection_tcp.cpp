@@ -1,6 +1,11 @@
-﻿
 #include "modbus_connection_tcp.h"
 #include "log/log.h"
+#if !defined(_WIN32) && !defined(WIN32)
+#include <sys/socket.h>
+#ifdef __linux__
+#include <netinet/tcp.h>
+#endif
+#endif
 
 ModbusConnectionTCP::ModbusConnectionTCP(const std::string& ip, int port, int slave_id)
     : IModbusConnection()
@@ -22,6 +27,7 @@ bool ModbusConnectionTCP::create_contexts()
         LOGERROR("Failed to create main Modbus context");
         return false;
     }
+    LOGINFO("Main Modbus context ip = %s, port = %d", m_conn.info.tcp.ip, m_conn.info.tcp.port);
 
     // 设置SO_REUSEADDR选项
     set_reuse_addr(main_ctx);

@@ -1,6 +1,7 @@
 #include "data_hub.h"
 #include "log/log.h"
 #include <algorithm>
+#include <cinttypes>
 
 DataHub::DataHub()
     : m_next_sub_id(1)
@@ -47,7 +48,7 @@ void DataHub::publish(const std::string& topic, DataContext::Ptr pkg)
         m_latest_cache[device_uuid] = pkg;
     }
 
-    LOGDEBUG("[DataHub] Published to topic [%s] from device [%s], frame [%lu]", topic.c_str(), device_uuid.c_str(), pkg->header.frame_index);
+    LOGDEBUG("[DataHub] Published to topic [%s] from device [%s], frame [%" PRIu64 "]", topic.c_str(), device_uuid.c_str(), pkg->header.frame_index);
 
     // 2. 通知订阅该 topic 的订阅者
     std::vector<DataCallback> callbacks;
@@ -114,7 +115,7 @@ uint64_t DataHub::subscribe(const std::string& topic, DataCallback cb)
     m_subscriptions[sub_id] = sub;
     m_topic_to_subs.emplace(topic, sub_id);
 
-    LOGINFO("[DataHub] Subscription [%lu] added for topic [%s]", sub_id, topic.c_str());
+    LOGINFO("[DataHub] Subscription [%" PRIu64 "] added for topic [%s]", sub_id, topic.c_str());
     return sub_id;
 }
 
@@ -124,7 +125,7 @@ void DataHub::unsubscribe(uint64_t sub_id)
 
     auto it = m_subscriptions.find(sub_id);
     if (it == m_subscriptions.end()) {
-        LOGWARN("[DataHub] Subscription [%lu] not found", sub_id);
+        LOGWARN("[DataHub] Subscription [%" PRIu64 "] not found", sub_id);
         return;
     }
 
@@ -143,7 +144,7 @@ void DataHub::unsubscribe(uint64_t sub_id)
 
     m_subscriptions.erase(it);
 
-    LOGINFO("[DataHub] Subscription [%lu] removed from topic", sub_id);
+    LOGINFO("[DataHub] Subscription [%" PRIu64 "] removed from topic", sub_id);
 }
 
 DataContext::Ptr DataHub::get_latest(const std::string& device_uuid)

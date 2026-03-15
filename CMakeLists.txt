@@ -17,7 +17,7 @@ if (MSVC)
 	set(SDK_DIR "D:/code/sdk" CACHE PATH "Path to external SDKs")
 else()
 	#set(BASE_LIB_DIR "/cf/base" CACHE PATH "Path to base libraries")
-	#set(SDK_DIR "sdk" CACHE PATH "Path to external SDKs")
+	set(SDK_DIR "/Users/wf/code/sdk" CACHE PATH "Path to external SDKs")
 endif()
 add_library(CORE_HEADERS INTERFACE)
 target_include_directories(CORE_HEADERS INTERFACE 

@@ -20,7 +20,7 @@ std::shared_ptr<DeviceProxy> DeviceBuilder::build(const DeviceDTO& dev_info)
                 proxy->add_stream(std::move(stream));
             }
             else {
-				LOGERROR("[DeviceBuilder][%s] Failed to assemble stream[% s]", dev_info.name.c_str(), s.stream_name.c_str());
+				LOGERROR("[DeviceBuilder][%s] Failed to assemble stream[%s]", dev_info.name.c_str(), s.stream_name.c_str());
             }
         }
         return proxy;

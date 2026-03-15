@@ -113,9 +113,9 @@ void DataProcessor::work_loop()
                 if (success) {
                     // Pipeline 成功；不在此发布，由结果组件按 topic "0" 发布给总转发
                     DataHub::instance().publish(DATA_HUB_TOPIC_FORWARD, data);
-                    LOGDEBUG("[DataProcessor][%s][%d] Pipeline executed successfully (cost: %ld us, frame: %lu)", m_pipeline->device_name().c_str(), m_pipeline->id(), duration, data->header.frame_index);
+                    LOGDEBUG("[DataProcessor][%s][%d] Pipeline executed successfully (cost: %lld us, frame: %llu)", m_pipeline->device_name().c_str(), m_pipeline->id(), duration, data->header.frame_index);
                 } else {
-                    LOGDEBUG("[DataProcessor][%s][%d] Pipeline stopped (cost: %ld us, frame: %lu)", m_pipeline->device_name().c_str(), m_pipeline->id(), duration, data->header.frame_index);
+                    LOGDEBUG("[DataProcessor][%s][%d] Pipeline stopped (cost: %lld us, frame: %llu)", m_pipeline->device_name().c_str(), m_pipeline->id(), duration, data->header.frame_index);
                 }
 
             } catch (const std::exception& e) {

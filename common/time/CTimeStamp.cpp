@@ -115,7 +115,7 @@ void TimeStampToStr(char* outbuf, double ts, int type)
 #if defined(_WIN32)
     localtime_s(&tm_local, &clock);
 #else defined(__linux__) || defined(__APPLE__)
-    localtime_r(&tm_local, &clock);
+    localtime_r(&clock, &tm_local);
 #endif
     
     snprintf(outbuf, 64, "%04d-%02d-%02d %02d:%02d:%02d.%03ld",

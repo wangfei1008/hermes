@@ -1,18 +1,18 @@
-
 #include "hermes.h"
 #include "log/log.h"
 #include "service.h"
+#include <cstdio>
 
 int main()
 {
-	LOG_INIT("log.properties");
+	LOG_INIT("./log.properties");
 	LOGINFO("****************************** setup ****************************");
 	Service s;
 	s.init();
 	// 阻塞主线程，等待输入 'q' 退出
-	char c = 0;
-	while (c = getc(stdin)) {
-		if ('EOF' == c || 'q' == c || 'Q' == c) break;
+	int c;
+	while ((c = getc(stdin)) != EOF) {
+		if (c == 'q' || c == 'Q') break;
 	}
 	s.release();
 	LOGINFO("****************************** stop *****************************");

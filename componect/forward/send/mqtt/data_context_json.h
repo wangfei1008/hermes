@@ -26,10 +26,10 @@ public:
     };
 
     // 单帧序列化
-    static std::string to_json(const DataContext& ctx, const ConvertOptions& opt = {});
+    static std::string to_json(const DataContext& ctx, const ConvertOptions& opt);
 
     // 多帧（历史数据）序列化
-    static std::string to_json_array(const std::vector<DataContext::Ptr>& list, const ConvertOptions& opt = {});
+    static std::string to_json_array(const std::vector<DataContext::Ptr>& list, const ConvertOptions& opt);
 
 private:
     // 时间工具

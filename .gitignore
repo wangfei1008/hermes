@@ -3,3 +3,6 @@
 CMakePresets.json
 .DS_Store
 /.vscode
+/base_build/base_build
+/base_build
+/build

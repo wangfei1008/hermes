@@ -49,7 +49,7 @@ private:
     void message_loop();
 
 private:
-    int m_id;
+    //int m_id;
     ComponentPipeline* m_pipeline;
     
     std::atomic<bool> m_running;
